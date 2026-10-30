@@ -41,33 +41,33 @@ footer p{margin:0;font-size:13px;line-height:1.7;color:var(--fg);max-width:34em;
 .dots button{width:6px;height:6px;padding:0;border:0;border-radius:3px;background:var(--line);cursor:pointer;transition:width .25s,background .25s}
 .dots button[aria-current="true"]{width:18px;background:var(--fg)}
 .dots button:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
-.flip{position:absolute;left:70%;top:20%;transform:translate(-50%,-50%);width:46px;height:46px;transition:opacity .2s;display:grid;place-items:center;padding:0;border:0;border-radius:50%;cursor:pointer;color:#1a1a1a;isolation:isolate;
-  /* glass: a lens-like fill lit from the top-left, tinted faintly by the character's colour */
-  background:
-    radial-gradient(120% 120% at 28% 18%,rgba(255,255,255,.6) 0%,rgba(255,255,255,.18) 38%,rgba(255,255,255,.04) 68%,rgba(255,255,255,.12) 100%),
-    linear-gradient(180deg,color-mix(in srgb,var(--tint) 2%,transparent),color-mix(in srgb,var(--tint) 7%,transparent));
-  -webkit-backdrop-filter:blur(6px) saturate(160%) brightness(1.04);backdrop-filter:blur(6px) saturate(160%) brightness(1.04);
+/* liquid glass: almost clear body, a bright refracting rim, light pooling along the inner edge, soft lift */
+.glass{position:relative;isolation:isolate;border:0;color:#111;cursor:pointer;
+  background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.10) 55%,rgba(255,255,255,.22));
+  -webkit-backdrop-filter:blur(3px) saturate(180%);backdrop-filter:blur(3px) saturate(180%);
   box-shadow:
-    0 10px 22px -10px rgba(0,0,0,.16),
-    0 2px 6px rgba(0,0,0,.06),
-    inset 0 2px 1px rgba(255,255,255,.95),
-    inset 0 -12px 18px -8px rgba(0,0,0,.06),
-    inset 0 0 0 1px rgba(255,255,255,.45)}
-/* bevelled rim: bright where the light hits, darker on the far side */
-.flip::before{content:"";position:absolute;inset:0;border-radius:50%;padding:1.5px;z-index:-1;
-  background:linear-gradient(145deg,#fff 0%,rgba(255,255,255,.2) 35%,rgba(0,0,0,.18) 65%,rgba(255,255,255,.9) 100%);
+    0 10px 24px -10px rgba(20,24,40,.28),
+    0 2px 5px rgba(20,24,40,.08),
+    inset 0 1.5px 1px rgba(255,255,255,.95),
+    inset 0 -1.5px 1px rgba(255,255,255,.55),
+    inset 0 0 16px rgba(255,255,255,.55),
+    inset 0 -8px 14px -10px rgba(20,24,40,.18)}
+/* the rim: a thin ring that catches light top-left and bottom-right, darker where it bends away */
+.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;z-index:-1;pointer-events:none;
+  background:linear-gradient(135deg,#fff 0%,rgba(255,255,255,.25) 28%,rgba(30,34,50,.22) 52%,rgba(255,255,255,.2) 74%,#fff 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-/* specular glint */
-.flip::after{content:"";position:absolute;top:6px;left:10px;width:18px;height:8px;border-radius:50%;z-index:-1;
-  background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,0));transform:rotate(-24deg)}
-.flip svg{width:21px;height:21px;filter:drop-shadow(0 1px 0 rgba(255,255,255,.8))}
-.flip:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
+/* a lens-like highlight across the top */
+.glass::after{content:"";position:absolute;left:10%;right:10%;top:3px;height:42%;border-radius:999px;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.75),rgba(255,255,255,0))}
+.glass:active{transform:scale(.97)}
+.glass:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
+.flip{position:absolute;left:70%;top:20%;translate:-50% -50%;width:46px;height:46px;transition:opacity .2s;display:grid;place-items:center;padding:0;border-radius:50%}
+.flip svg{width:21px;height:21px}
 .load{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;letter-spacing:.1em;color:var(--muted);pointer-events:none}
 
 /* ---- entry: call-to-action, form and ticket ---- */
-.cta{position:absolute;left:50%;top:80%;transform:translate(-50%,0);white-space:nowrap;transition:opacity .2s;font:inherit;font-size:15px;font-weight:700;letter-spacing:.04em;color:#fff;background:var(--fg);border:0;border-radius:999px;padding:13px 28px;cursor:pointer}
-.cta:focus-visible,.btn:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
-.ticket-link{pointer-events:auto;font:inherit;font-size:11px;letter-spacing:.06em;color:var(--fg);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin-top:6px;cursor:pointer}
+.cta{position:absolute;left:50%;top:80%;translate:-50% 0;white-space:nowrap;transition:opacity .2s;font:inherit;font-size:15px;font-weight:700;letter-spacing:.04em;border-radius:999px;padding:14px 30px}
+.ticket-link{pointer-events:auto;font:inherit;font-size:11px;letter-spacing:.06em;border-radius:999px;padding:5px 12px;margin-top:6px}
 .panel{position:absolute;inset:0;z-index:5;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
   padding:0 max(20px,env(safe-area-inset-right,0px)) 32px max(20px,env(safe-area-inset-left,0px));animation:rise .28s ease-out}
 @keyframes rise{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
@@ -102,9 +102,9 @@ textarea{resize:none;min-height:72px}
 .check{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.6;cursor:pointer}
 .check input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--fg)}
 .err{margin:0;font-size:13px;color:#c62828;min-height:1.2em}
-.btn{font:inherit;font-size:16px;font-weight:700;color:#fff;background:var(--fg);border:0;border-radius:999px;padding:15px;width:100%;cursor:pointer}
+.btn{font:inherit;font-size:16px;font-weight:700;border-radius:999px;padding:15px;width:100%}
 .btn[disabled]{opacity:.45;cursor:default}
-.btn.ghost{background:none;color:var(--fg);border:1px solid var(--line);font-weight:400}
+.btn.ghost{font-weight:400;color:#444}
 
 /* the ticket people screenshot and send by DM */
 .ticket{--c:#111;position:relative;margin-top:8px;border:2px solid var(--c);border-radius:18px;padding:18px;background:#fff;overflow:hidden}
@@ -140,15 +140,15 @@ textarea{resize:none;min-height:72px}
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end">
       <div class="count" id="count">01 / 10</div>
-      <button class="ticket-link" id="openTicket" hidden>受付票</button>
+      <button class="ticket-link glass" id="openTicket" hidden>受付票</button>
     </div>
   </header>
   <footer id="footer">
     <p id="desc"></p>
     <div class="dots" id="dots" role="tablist" aria-label="キャラクター"></div>
   </footer>
-  <button class="cta" id="apply">この野菜にする</button>
-  <button class="flip" id="flip" aria-label="裏返す">
+  <button class="cta glass" id="apply">この野菜にする</button>
+  <button class="flip glass" id="flip" aria-label="裏返す">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M20 11a8 8 0 0 0-14.3-4.9"/><path d="M5.5 2.5v4h4"/>
       <path d="M4 13a8 8 0 0 0 14.3 4.9"/><path d="M18.5 21.5v-4h-4"/>
@@ -179,7 +179,7 @@ textarea{resize:none;min-height:72px}
       </label>
       <label class="check"><input type="checkbox" id="agree"><span id="agreeText">顔写真と連絡先は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。</span></label>
       <p class="err" id="formErr" role="alert"></p>
-      <button class="btn" type="submit" id="submitBtn">この内容で受付する</button>
+      <button class="btn glass" type="submit" id="submitBtn">この内容で受付する</button>
     </form>
   </section>
 
@@ -207,9 +207,9 @@ textarea{resize:none;min-height:72px}
       <li><b>2</b>下のボタンから DM で送ってね</li>
     </ol>
     <div class="stack">
-      <button class="btn" id="dmBtn">Instagram で DM を送る</button>
+      <button class="btn glass" id="dmBtn">Instagram で DM を送る</button>
       <p class="note" id="dmNote">ボタンを押すと受付内容もコピーされます。<br>完成したら DM でお知らせします。番号は控えておいてね。</p>
-      <button class="btn ghost" id="backToKeys">キーホルダーにもどる</button>
+      <button class="btn glass ghost" id="backToKeys">キーホルダーにもどる</button>
     </div>
   </section>
 </div>
