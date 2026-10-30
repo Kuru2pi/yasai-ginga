@@ -34,9 +34,10 @@ header,footer{position:absolute;left:0;right:0;padding-left:max(20px,env(safe-ar
 header{top:0;padding-block:18px 0;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 h1{margin:0;font-size:28px;font-weight:700;letter-spacing:.02em;line-height:1.1}
 .sub{font-size:11px;letter-spacing:.14em;color:var(--muted);margin-top:4px}
+.lang{pointer-events:auto;font:inherit;font-size:11px;font-weight:700;letter-spacing:.08em;border-radius:999px;padding:5px 11px;margin-bottom:6px}
 .count{font-size:12px;letter-spacing:.08em;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 footer{bottom:0;padding-block:0 18px;display:flex;flex-direction:column;align-items:center;gap:14px}
-footer p{margin:0;font-size:13px;line-height:1.7;color:var(--fg);max-width:34em;text-align:center;min-height:5.1em}
+footer p{margin:0;font-size:13px;line-height:1.6;color:var(--fg);max-width:34em;text-align:center;min-height:1.6em}
 .dots{display:flex;gap:6px;pointer-events:auto}
 .dots button{width:6px;height:6px;padding:0;border:0;border-radius:3px;background:var(--line);cursor:pointer;transition:width .25s,background .25s}
 .dots button[aria-current="true"]{width:18px;background:var(--fg)}
@@ -85,10 +86,7 @@ form{display:flex;flex-direction:column;gap:22px;margin-top:6px}
 input[type=text],input[type=tel],textarea{font:inherit;font-size:16px;color:var(--fg);background:#fff;border:1px solid #cfcfcf;border-radius:10px;padding:12px 14px;width:100%;-webkit-user-select:text;user-select:text}
 input:focus,textarea:focus{outline:2px solid var(--fg);outline-offset:-1px;border-color:transparent}
 textarea{resize:none;min-height:72px}
-.at{position:relative}.at::before{content:"@";position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px}
-.at input{padding-left:32px}
-.at input:disabled{background:#f4f4f4;color:var(--muted)}
-.photo{position:relative;display:grid;place-items:center;aspect-ratio:1/1;width:min(100%,220px);align-self:center;border:1.5px dashed #bdbdbd;border-radius:18px;overflow:hidden;cursor:pointer;color:var(--muted);font-size:13px;text-align:center;line-height:1.6}
+.photo{position:relative;display:grid;place-items:center;aspect-ratio:4/3;width:100%;border:1.5px dashed #bdbdbd;border-radius:18px;overflow:hidden;cursor:pointer;color:var(--muted);font-size:13px;text-align:center;line-height:1.6}
 .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .photo input{position:absolute;width:1px;height:1px;opacity:0}
 .photo:focus-within{outline:2px solid var(--fg);outline-offset:2px}
@@ -118,7 +116,7 @@ textarea{resize:none;min-height:72px}
 .t-no b{font-size:56px;line-height:1;font-weight:700;letter-spacing:.02em;color:var(--c);font-variant-numeric:tabular-nums}
 .t-no small{font-size:12px;color:var(--muted)}
 .t-body{display:flex;gap:14px;margin-top:18px;align-items:center}
-.t-body img{width:92px;height:92px;border-radius:14px;object-fit:cover;flex:none;background:#eee}
+.t-body img{width:116px;height:87px;border-radius:14px;object-fit:cover;flex:none;background:#eee}
 .t-body dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:14px;min-width:0}
 .t-body dt{color:var(--muted);font-size:12px}
 .t-body dd{margin:0;font-weight:700;overflow-wrap:anywhere}
@@ -139,16 +137,17 @@ textarea{resize:none;min-height:72px}
       <div class="sub" id="sub">TOMATO · TM01</div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end">
+      <button class="lang glass" id="lang" aria-label="Language">EN</button>
       <div class="count" id="count">01 / 10</div>
-      <button class="ticket-link glass" id="openTicket" hidden>受付票</button>
+      <button class="ticket-link glass" id="openTicket" hidden data-i18n="ticketLink">受付票</button>
     </div>
   </header>
   <footer id="footer">
     <p id="desc"></p>
-    <div class="dots" id="dots" role="tablist" aria-label="キャラクター"></div>
+    <div class="dots" id="dots" role="tablist"></div>
   </footer>
-  <button class="cta glass" id="apply">この野菜にする</button>
-  <button class="flip glass" id="flip" aria-label="裏返す">
+  <button class="cta glass" id="apply" data-i18n="apply">この野菜にする</button>
+  <button class="flip glass" id="flip" data-i18n-label="flip" aria-label="裏返す">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M20 11a8 8 0 0 0-14.3-4.9"/><path d="M5.5 2.5v4h4"/>
       <path d="M4 13a8 8 0 0 0 14.3 4.9"/><path d="M18.5 21.5v-4h-4"/>
@@ -157,59 +156,55 @@ textarea{resize:none;min-height:72px}
 
   <section class="panel" id="formPanel" hidden aria-labelledby="formTitle">
     <div class="panel-head">
-      <button class="icon-btn" id="closeForm" aria-label="もどる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-      <h2 id="formTitle">似顔絵の受付</h2>
+      <button class="icon-btn" id="closeForm" data-i18n-label="back" aria-label="もどる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2 id="formTitle" data-i18n="formTitle">似顔絵の受付</h2>
     </div>
-    <div class="chosen"><i id="chosenDot"></i><span id="chosenName">トマト星人</span><small>野菜を変えるときは「もどる」</small></div>
+    <div class="chosen"><i id="chosenDot"></i><span id="chosenName">トマト星人</span></div>
     <form id="entry" novalidate>
       <label class="photo" id="photoBox">
         <input type="file" id="photo" accept="image/*">
         <img id="photoPreview" alt="" hidden>
-        <span id="photoHint">タップして<br>顔写真を撮る・選ぶ</span>
+        <span id="photoHint" data-i18n-html="photoHint">タップして<br>顔写真を撮る・選ぶ</span>
       </label>
-      <label class="field"><span>ニックネーム</span>
-        <input type="text" id="nick" maxlength="20" autocomplete="nickname" placeholder="例：じゅん">
+      <label class="field"><span data-i18n="nick">ニックネーム</span>
+        <input type="text" id="nick" maxlength="20" autocomplete="nickname" data-i18n-ph="nickPh" placeholder="例：じゅん">
       </label>
-      <div class="field"><span>Instagram<em>完成のお知らせを DM で送ります</em></span>
-        <div class="at"><input type="text" id="ig" maxlength="30" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="instagram_id"></div>
-        <label class="check"><input type="checkbox" id="noIg">Instagram を持っていない</label>
-      </div>
-      <label class="field"><span>電話番号</span>
+      <label class="field"><span><span data-i18n="tel">電話番号</span><em data-i18n="telNote">任意</em></span>
         <input type="tel" id="tel" maxlength="15" autocomplete="tel" placeholder="090-1234-5678">
       </label>
-      <label class="check"><input type="checkbox" id="agree"><span id="agreeText">顔写真と連絡先は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。</span></label>
+      <label class="check"><input type="checkbox" id="agree"><span data-i18n="agree">顔写真と電話番号は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。</span></label>
       <p class="err" id="formErr" role="alert"></p>
-      <button class="btn glass" type="submit" id="submitBtn">この内容で受付する</button>
+      <button class="btn glass" type="submit" id="submitBtn" data-i18n="submit">この内容で受付する</button>
     </form>
   </section>
 
   <section class="panel" id="ticketPanel" hidden aria-labelledby="ticketTitle">
     <div class="panel-head">
-      <button class="icon-btn" id="closeTicket" aria-label="とじる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      <h2 id="ticketTitle">受付が完了しました</h2>
+      <button class="icon-btn" id="closeTicket" data-i18n-label="close" aria-label="とじる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <h2 id="ticketTitle" data-i18n="ticketTitle">受付が完了しました</h2>
     </div>
     <div class="ticket" id="ticket">
       <span class="t-demo" id="tDemo" hidden>TEST</span>
-      <div class="t-eyebrow">ヤサイギンガ 星間航旅券</div>
-      <div class="t-title">似顔絵 受付票</div>
+      <div class="t-eyebrow" data-i18n="tEyebrow">ヤサイギンガ 星間航旅券</div>
+      <div class="t-title" data-i18n="tTitle">似顔絵 受付票</div>
       <div class="t-no"><b id="tNo">12</b><small id="tTime"></small></div>
       <div class="t-cut"></div>
       <div class="t-body">
         <img id="tPhoto" alt="">
         <dl>
-          <dt>なまえ</dt><dd id="tNick"></dd>
-          <dt>野菜</dt><dd id="tVeg"></dd>
+          <dt data-i18n="tName">なまえ</dt><dd id="tNick"></dd>
+          <dt data-i18n="tVeg">野菜</dt><dd id="tVeg"></dd>
         </dl>
       </div>
     </div>
     <ol class="steps">
-      <li><b>1</b>この画面をスクショ</li>
-      <li><b>2</b>下のボタンから DM で送ってね</li>
+      <li><b>1</b><span data-i18n="step1">この画面をスクショ</span></li>
+      <li><b>2</b><span data-i18n="step2">下のボタンから DM で送ってね</span></li>
     </ol>
     <div class="stack">
-      <button class="btn glass" id="dmBtn">Instagram で DM を送る</button>
-      <p class="note" id="dmNote">ボタンを押すと受付内容もコピーされます。<br>完成したら DM でお知らせします。番号は控えておいてね。</p>
-      <button class="btn glass ghost" id="backToKeys">キーホルダーにもどる</button>
+      <button class="btn glass" id="dmBtn" data-i18n="dm">Instagram で DM を送る</button>
+      <p class="note" id="dmNote" data-i18n-html="dmNote">ボタンを押すと受付内容もコピーされます。<br>完成したら DM でお知らせします。番号は控えておいてね。</p>
+      <button class="btn glass ghost" id="backToKeys" data-i18n="backToKeys">キーホルダーにもどる</button>
     </div>
   </section>
 </div>
@@ -231,6 +226,55 @@ const EMBED = window.EMBED || null;
 const $ = id => document.getElementById(id);
 const N = CHARS.length;
 CHARS.forEach(c => { const [num, en] = c.id.split(" / ")[0].split("."); c.num = num; c.en = en; c.code = c.id.split(" / ")[1]; });
+
+/* ---------- Japanese / English ---------- */
+const I18N = {
+  ja: {
+    apply: "この野菜にする", flip: "裏返す", back: "もどる", close: "とじる", ticketLink: "受付票",
+    formTitle: "似顔絵の受付", photoHint: "タップして<br>顔写真を撮る・選ぶ", nick: "ニックネーム", nickPh: "例：じゅん",
+    tel: "電話番号", telNote: "任意（入れない人は、受付票を必ず DM で送ってね）",
+    agree: "顔写真と電話番号は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。",
+    submit: "この内容で受付する", sending: "送信中…",
+    ticketTitle: "受付が完了しました", tEyebrow: "ヤサイギンガ 星間航旅券", tTitle: "似顔絵 受付票", tName: "なまえ", tVeg: "野菜",
+    step1: "この画面をスクショ", step2: "下のボタンから DM で送ってね", dm: "Instagram で DM を送る",
+    dmNote: "ボタンを押すと受付内容もコピーされます。<br>完成したら DM でお知らせします。番号は控えておいてね。",
+    dmUnset: "（DM の送り先がまだ設定されていません）", backToKeys: "キーホルダーにもどる",
+    alien: l => `${l}星人`, received: t => `${t} 受付`,
+    errPhoto: "顔写真を撮るか選んでください。", errPhotoRead: "写真を読み込めませんでした。別の写真で試してください。",
+    errNick: "ニックネームを入れてください。", errTel: "電話番号を確認してください（ハイフンはあってもなくても大丈夫です）。",
+    errAgree: "下の内容に同意のチェックを入れてください。",
+    errSend: "送信できませんでした。電波のよい場所でもう一度お試しいただくか、スタッフに声をかけてください。",
+    dmText: t => `【ヤサイギンガ 似顔絵受付】\nNo.${t.number}\n${t.nickname}／${t.vegJa}星人`,
+  },
+  en: {
+    apply: "Choose this one", flip: "Flip", back: "Back", close: "Close", ticketLink: "Ticket",
+    formTitle: "Portrait sign-up", photoHint: "Tap to take<br>or choose a photo", nick: "Nickname", nickPh: "e.g. Jun",
+    tel: "Phone number", telNote: "Optional (if you skip it, be sure to DM us your ticket)",
+    agree: "Your photo and phone number are used only to draw your portrait and tell you when it's ready, and are deleted after the festival.",
+    submit: "Sign up", sending: "Sending…",
+    ticketTitle: "You're signed up!", tEyebrow: "YASAI GALAXY Interstellar Passport", tTitle: "Portrait ticket", tName: "Name", tVeg: "Veggie",
+    step1: "Take a screenshot of this screen", step2: "Send it to us by DM below", dm: "Send a DM on Instagram",
+    dmNote: "The button also copies your ticket details.<br>We'll DM you when your portrait is ready. Keep your number.",
+    dmUnset: "(DM account not set yet)", backToKeys: "Back to the keychains",
+    alien: l => `${l} Alien`, received: t => t,
+    errPhoto: "Please take or choose a photo of your face.", errPhotoRead: "Couldn't read that photo. Please try another one.",
+    errNick: "Please enter a nickname.", errTel: "Please check your phone number.",
+    errAgree: "Please tick the box to agree.",
+    errSend: "Couldn't send. Please try again where the signal is better, or ask our staff.",
+    dmText: t => `[YASAI GALAXY portrait]\nNo.${t.number}\n${t.nickname} / ${t.vegEn} Alien`,
+  },
+};
+let LANG = (() => { try { const v = localStorage.getItem("yasai-lang"); if (v) return v; } catch {} return /^ja/i.test(navigator.language) ? "ja" : "en"; })();
+const T = k => I18N[LANG][k];
+function applyLang(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = T(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = T(el.dataset.i18nHtml); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = T(el.dataset.i18nPh); });
+  document.querySelectorAll("[data-i18n-label]").forEach(el => { el.setAttribute("aria-label", T(el.dataset.i18nLabel)); });
+  document.getElementById("lang").textContent = LANG === "ja" ? "EN" : "日本語";
+}
+applyLang();
 
 /* ---------- renderer ---------- */
 const app = $("app");
@@ -324,7 +368,7 @@ let spacing = 0.07, baseDist = 0.4, zoom = 1, zoomTarget = 1, zoomMin = 0.3;
 const dots = $("dots");
 CHARS.forEach((c, i) => {
   const d = document.createElement("button");
-  d.setAttribute("role", "tab"); d.setAttribute("aria-label", c.label);
+  d.setAttribute("role", "tab"); d.setAttribute("aria-label", c.label_en);
   d.onclick = () => { target = i; };
   dots.appendChild(d);
 });
@@ -332,10 +376,10 @@ function show(i){
   if (i === cur) return;
   cur = i;
   const c = CHARS[i];
-  $("veg").textContent = c.label;
-  $("sub").textContent = `${c.en} · ${c.code}`;
+  $("veg").textContent = LANG === "ja" ? c.label : c.label_en;
+  $("sub").textContent = LANG === "ja" ? `${c.en} · ${c.code}` : `${c.label} · ${c.code}`;
   $("count").textContent = `${String(i + 1).padStart(2, "0")} / ${N}`;
-  $("desc").textContent = c.desc;
+  $("desc").textContent = LANG === "ja" ? c.short : c.short_en;
   $("flip").style.setProperty("--tint", c.color);
   [...dots.children].forEach((d, j) => d.setAttribute("aria-current", j === i));
   $("load").hidden = !!rigs[i];
@@ -412,15 +456,15 @@ let camY0 = 0;
 function resize(){
   const w = app.clientWidth, h = app.clientHeight;
   renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
-  // vertical stack: clasp top (+92.7 mm) … card tab (+47.8) … card bottom (-41) … gap … CTA button.
+  // vertical stack: clasp top (+77.5 mm) … card tab (+47.8) … card bottom (-41) … gap … CTA button.
   // The card and CTA sit between the title and the description; the clasp may rise beside the
   // title but must stay inside the screen.
-  const TOP = 0.0927, CT = 0.0478, CB = 0.041, CTA = 14 + 48, EDGE = 10;
+  const TOP = 0.0775, CT = 0.0478, CB = 0.041, CTA = 14 + 48, EDGE = 10;
   const regTop = $("header").offsetHeight + 10, regBot = $("footer").offsetTop - 10, regH = regBot - regTop;
   const pxPerM = Math.min(
     (regH - CTA) / (CT + CB),            // card + CTA between the texts
     (regBot - EDGE - CTA) / (TOP + CB),  // clasp stays on screen
-    0.70 * w / 0.06);                    // card ≈ 70% of the screen width at most
+    0.78 * w / 0.06);                    // card ≈ 78% of the screen width at most
   const blockTop = Math.max(regTop + (regH - (CT + CB) * pxPerM - CTA) / 2, EDGE + (TOP - CT) * pxPerM);
   const cardZero = blockTop + CT * pxPerM;   // screen y of the card's centre
   const halfH = h / 2 / pxPerM;
@@ -442,55 +486,69 @@ resize();
 const formPanel = $("formPanel"), ticketPanel = $("ticketPanel");
 let photoData = "";
 const TICKET_KEY = "yasai-ticket";
-const loadTicket = () => { try { return JSON.parse(localStorage.getItem(TICKET_KEY) || "null"); } catch { return null; } };
+const loadTicket = () => {
+  let t = null;
+  try { t = JSON.parse(localStorage.getItem(TICKET_KEY) || "null"); } catch {}
+  if (t && !t.vegJa){ t.vegJa = t.vegetable; t.vegEn = CHARS.find(c => c.label === t.vegetable)?.label_en ?? t.vegetable; }   // tickets saved by older versions
+  return t;
+};
 const saveTicket = t => { try { localStorage.setItem(TICKET_KEY, JSON.stringify(t)); } catch {} };
 $("openTicket").hidden = !loadTicket();
+
+$("lang").onclick = () => {
+  LANG = LANG === "ja" ? "en" : "ja";
+  try { localStorage.setItem("yasai-lang", LANG); } catch {}
+  applyLang();
+  const i = cur; cur = -1; show(i);
+  if (!ticketPanel.hidden){ const t = loadTicket(); if (t) showTicket(t); }
+  requestAnimationFrame(resize);   // text height may have changed
+};
 
 $("apply").onclick = () => {
   const c = CHARS[cur];
   $("chosenDot").style.background = c.color;
-  $("chosenName").textContent = `${c.label}星人`;
+  $("chosenName").textContent = T("alien")(LANG === "ja" ? c.label : c.label_en);
   $("formErr").textContent = "";
   formPanel.hidden = false; formPanel.scrollTop = 0;
 };
 $("closeForm").onclick = () => { formPanel.hidden = true; };
-$("ig").oninput = e => { e.target.value = e.target.value.replace(/[@\s]/g, ""); };   // the field already shows "@"
-$("noIg").onchange = e => { $("ig").disabled = e.target.checked; if (e.target.checked) $("ig").value = ""; };
 
-// shrink the photo on the phone before sending: long side 1000 px, JPEG
+// landscape 4:3 crop on the phone (biased upward, where faces usually are), long side 1200 px, JPEG
 $("photo").onchange = async e => {
   const f = e.target.files[0];
   if (!f) return;
   try {
     const url = URL.createObjectURL(f);
     const img = new Image(); img.src = url; await img.decode();
-    const k = Math.min(1, 1000 / Math.max(img.naturalWidth, img.naturalHeight));
+    const W = img.naturalWidth, Hh = img.naturalHeight;
+    let sw = W, sh = W * 3 / 4;
+    if (sh > Hh){ sh = Hh; sw = Hh * 4 / 3; }
+    const sx = (W - sw) / 2, sy = (Hh - sh) * 0.35;
     const cv = document.createElement("canvas");
-    cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
-    cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+    cv.width = Math.round(Math.min(1200, sw)); cv.height = Math.round(cv.width * 3 / 4);
+    cv.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
     URL.revokeObjectURL(url);
     photoData = cv.toDataURL("image/jpeg", 0.85);
     $("photoPreview").src = photoData; $("photoPreview").hidden = false;
     $("photoHint").hidden = true; $("photoBox").classList.add("has");
   } catch {
-    $("formErr").textContent = "写真を読み込めませんでした。別の写真で試してください。";
+    $("formErr").textContent = T("errPhotoRead");
   }
 };
 
 $("entry").onsubmit = async e => {
   e.preventDefault();
-  const err = m => { $("formErr").textContent = m; };
-  const nick = $("nick").value.trim(), ig = $("ig").value.trim().replace(/^@/, ""), noIg = $("noIg").checked;
-  const tel = $("tel").value.trim(), digits = tel.replace(/\D/g, "");
-  if (!photoData) return err("顔写真を撮るか選んでください。");
-  if (!nick) return err("ニックネームを入れてください。");
-  if (!noIg && !/^[A-Za-z0-9._]{1,30}$/.test(ig)) return err("Instagram の ID を確認してください（持っていない人はチェックを入れてください）。");
-  if (digits.length < 10 || digits.length > 11) return err("電話番号を確認してください（ハイフンはあってもなくても大丈夫です）。");
-  if (!$("agree").checked) return err("下の内容に同意のチェックを入れてください。");
-  err("");
+  const err = k => { $("formErr").textContent = T(k); };
+  const nick = $("nick").value.trim(), tel = $("tel").value.trim(), digits = tel.replace(/\D/g, "");
+  if (!photoData) return err("errPhoto");
+  if (!nick) return err("errNick");
+  if (tel && (digits.length < 10 || digits.length > 13)) return err("errTel");
+  if (!$("agree").checked) return err("errAgree");
+  $("formErr").textContent = "";
   const c = CHARS[cur];
-  const entry = {vegetable: c.label, nickname: nick, instagram: noIg ? "" : ig, phone: tel};
-  const btn = $("submitBtn"); btn.disabled = true; btn.textContent = "送信中…";
+  // the sheet is for the booth staff, so it always gets the Japanese name; "なし" = DM only
+  const entry = {vegetable: c.label, nickname: nick, instagram: "", phone: tel || "なし", lang: LANG};
+  const btn = $("submitBtn"); btn.disabled = true; btn.textContent = T("sending");
   try {
     let number, time, demo = false;
     if (CONFIG.endpoint){
@@ -503,38 +561,37 @@ $("entry").onsubmit = async e => {
       demo = true; number = Math.floor(Math.random() * 90) + 10;
       time = new Date().toLocaleString("ja-JP", {month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"});
     }
-    const ticket = {...entry, number, time, demo, color: c.color, photo: photoData};
+    const ticket = {nickname: nick, vi: cur, vegJa: c.label, vegEn: c.label_en, number, time, demo, color: c.color, photo: photoData};
     saveTicket(ticket);
     $("openTicket").hidden = false;
-    $("entry").reset(); $("ig").disabled = false;
+    $("entry").reset();
     photoData = ""; $("photoPreview").hidden = true; $("photoHint").hidden = false; $("photoBox").classList.remove("has");
     formPanel.hidden = true;
     showTicket(ticket);
   } catch {
-    err("送信できませんでした。電波のよい場所でもう一度お試しいただくか、スタッフに声をかけてください。");
+    err("errSend");
   } finally {
-    btn.disabled = false; btn.textContent = "この内容で受付する";
+    btn.disabled = false; btn.textContent = T("submit");
   }
 };
 
 function showTicket(t){
   $("ticket").style.setProperty("--c", t.color);
-  $("tNo").textContent = t.number; $("tTime").textContent = `${t.time} 受付`;
+  $("tNo").textContent = t.number; $("tTime").textContent = T("received")(t.time);
   $("tPhoto").src = t.photo || ""; $("tNick").textContent = t.nickname;
-  $("tVeg").textContent = `${t.vegetable}星人`;
+  $("tVeg").textContent = T("alien")(LANG === "ja" ? t.vegJa : t.vegEn);
   $("tDemo").hidden = !t.demo;
   $("dmBtn").disabled = !CONFIG.instagram;
-  if (!CONFIG.instagram) $("dmNote").textContent = "（DM の送り先がまだ設定されていません）";
+  if (!CONFIG.instagram) $("dmNote").textContent = T("dmUnset");
   ticketPanel.hidden = false; ticketPanel.scrollTop = 0;
 }
 $("openTicket").onclick = () => { const t = loadTicket(); if (t) showTicket(t); };
 $("closeTicket").onclick = $("backToKeys").onclick = () => { ticketPanel.hidden = true; };
 $("dmBtn").onclick = () => {
   const t = loadTicket(); if (!t || !CONFIG.instagram) return;
-  const text = `【ヤサイギンガ 似顔絵受付】\nNo.${t.number}\n${t.nickname}／${t.vegetable}星人`;
   const go = () => { location.href = `https://ig.me/m/${CONFIG.instagram}`; };
   // copy inside the tap, then open the booth's DM thread
-  (navigator.clipboard?.writeText(text) ?? Promise.reject()).catch(() => {}).finally(go);
+  (navigator.clipboard?.writeText(T("dmText")(t)) ?? Promise.reject()).catch(() => {}).finally(go);
 };
 
 /* ---------- loop ---------- */
