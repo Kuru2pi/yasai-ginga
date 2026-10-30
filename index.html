@@ -105,7 +105,8 @@ textarea{resize:none;min-height:72px}
 .btn.ghost{font-weight:400;color:#444}
 
 /* the ticket people screenshot and send by DM */
-.ticket{--c:#111;position:relative;margin-top:8px;border:2px solid var(--c);border-radius:18px;padding:18px;background:#fff;overflow:hidden}
+.tickets{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+.ticket{--c:#111;position:relative;border:2px solid var(--c);border-radius:18px;padding:18px;background:#fff;overflow:hidden}
 /* perforation with punched notches between the number and the details */
 .t-cut{position:relative;margin:16px -20px 0;border-top:2px dashed color-mix(in srgb,var(--c) 45%,#fff)}
 .t-cut::before,.t-cut::after{content:"";position:absolute;top:-12px;width:22px;height:22px;border-radius:50%;background:var(--bg);border:2px solid var(--c)}
@@ -137,7 +138,6 @@ textarea{resize:none;min-height:72px}
       <div class="sub" id="sub">TOMATO · TM01</div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end">
-      <button class="lang glass" id="lang" aria-label="Language">EN</button>
       <div class="count" id="count">01 / 10</div>
       <button class="ticket-link glass" id="openTicket" hidden data-i18n="ticketLink">受付票</button>
     </div>
@@ -180,31 +180,17 @@ textarea{resize:none;min-height:72px}
 
   <section class="panel" id="ticketPanel" hidden aria-labelledby="ticketTitle">
     <div class="panel-head">
-      <button class="icon-btn" id="closeTicket" data-i18n-label="close" aria-label="とじる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      <h2 id="ticketTitle" data-i18n="ticketTitle">受付が完了しました</h2>
+      <h2 id="ticketTitle" data-i18n="ticketTitle">受付票</h2>
     </div>
-    <div class="ticket" id="ticket">
-      <span class="t-demo" id="tDemo" hidden>TEST</span>
-      <div class="t-eyebrow" data-i18n="tEyebrow">ヤサイギンガ 星間航旅券</div>
-      <div class="t-title" data-i18n="tTitle">似顔絵 受付票</div>
-      <div class="t-no"><b id="tNo">12</b><small id="tTime"></small></div>
-      <div class="t-cut"></div>
-      <div class="t-body">
-        <img id="tPhoto" alt="">
-        <dl>
-          <dt data-i18n="tName">なまえ</dt><dd id="tNick"></dd>
-          <dt data-i18n="tVeg">野菜</dt><dd id="tVeg"></dd>
-        </dl>
-      </div>
-    </div>
+    <div class="tickets" id="tickets"></div>
     <ol class="steps">
       <li><b>1</b><span data-i18n="step1">この画面をスクショ</span></li>
       <li><b>2</b><span data-i18n="step2">下のボタンから DM で送ってね</span></li>
     </ol>
     <div class="stack">
       <button class="btn glass" id="dmBtn" data-i18n="dm">Instagram で DM を送る</button>
-      <p class="note" id="dmNote" data-i18n-html="dmNote">ボタンを押すと受付内容もコピーされます。<br>完成したら DM でお知らせします。番号は控えておいてね。</p>
-      <button class="btn glass ghost" id="backToKeys" data-i18n="backToKeys">キーホルダーにもどる</button>
+      <p class="note" id="dmNote" data-i18n-html="dmNote"></p>
+      <button class="btn glass ghost" id="addMore" data-i18n="addMore">＋ 似顔絵を追加する</button>
     </div>
   </section>
 </div>
@@ -227,7 +213,7 @@ const $ = id => document.getElementById(id);
 const N = CHARS.length;
 CHARS.forEach(c => { const [num, en] = c.id.split(" / ")[0].split("."); c.num = num; c.en = en; c.code = c.id.split(" / ")[1]; });
 
-/* ---------- Japanese / English ---------- */
+/* ---------- UI text (kept in one place so wording is easy to change) ---------- */
 const I18N = {
   ja: {
     apply: "この野菜にする", flip: "裏返す", back: "もどる", close: "とじる", ticketLink: "受付票",
@@ -235,7 +221,7 @@ const I18N = {
     tel: "電話番号", telNote: "任意（入れない人は、受付票を必ず DM で送ってね）",
     agree: "顔写真と電話番号は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。",
     submit: "この内容で受付する", sending: "送信中…",
-    ticketTitle: "受付が完了しました", tEyebrow: "ヤサイギンガ 星間航旅券", tTitle: "似顔絵 受付票", tName: "なまえ", tVeg: "野菜",
+    ticketTitle: "受付票", addMore: "＋ 似顔絵を追加する", tEyebrow: "ヤサイギンガ 星間航旅券", tTitle: "似顔絵 受付票", tName: "なまえ", tVeg: "野菜",
     step1: "この画面をスクショ", step2: "下のボタンから DM で送ってね", dm: "Instagram で DM を送る",
     dmNote: "ボタンを押すと受付内容もコピーされます。<br>完成したら DM でお知らせします。番号は控えておいてね。",
     dmUnset: "（DM の送り先がまだ設定されていません）", backToKeys: "キーホルダーにもどる",
@@ -244,35 +230,15 @@ const I18N = {
     errNick: "ニックネームを入れてください。", errTel: "電話番号を確認してください（ハイフンはあってもなくても大丈夫です）。",
     errAgree: "下の内容に同意のチェックを入れてください。",
     errSend: "送信できませんでした。電波のよい場所でもう一度お試しいただくか、スタッフに声をかけてください。",
-    dmText: t => `【ヤサイギンガ 似顔絵受付】\nNo.${t.number}\n${t.nickname}／${t.vegJa}星人`,
-  },
-  en: {
-    apply: "Choose this one", flip: "Flip", back: "Back", close: "Close", ticketLink: "Ticket",
-    formTitle: "Portrait sign-up", photoHint: "Tap to take<br>or choose a photo", nick: "Nickname", nickPh: "e.g. Jun",
-    tel: "Phone number", telNote: "Optional (if you skip it, be sure to DM us your ticket)",
-    agree: "Your photo and phone number are used only to draw your portrait and tell you when it's ready, and are deleted after the festival.",
-    submit: "Sign up", sending: "Sending…",
-    ticketTitle: "You're signed up!", tEyebrow: "YASAI GALAXY Interstellar Passport", tTitle: "Portrait ticket", tName: "Name", tVeg: "Veggie",
-    step1: "Take a screenshot of this screen", step2: "Send it to us by DM below", dm: "Send a DM on Instagram",
-    dmNote: "The button also copies your ticket details.<br>We'll DM you when your portrait is ready. Keep your number.",
-    dmUnset: "(DM account not set yet)", backToKeys: "Back to the keychains",
-    alien: l => `${l} Alien`, received: t => t,
-    errPhoto: "Please take or choose a photo of your face.", errPhotoRead: "Couldn't read that photo. Please try another one.",
-    errNick: "Please enter a nickname.", errTel: "Please check your phone number.",
-    errAgree: "Please tick the box to agree.",
-    errSend: "Couldn't send. Please try again where the signal is better, or ask our staff.",
-    dmText: t => `[YASAI GALAXY portrait]\nNo.${t.number}\n${t.nickname} / ${t.vegEn} Alien`,
+    dmText: ts => "【ヤサイギンガ 似顔絵受付】\n" + ts.map(t => `No.${t.number}　${t.nickname}／${t.vegJa}星人`).join("\n"),
   },
 };
-let LANG = (() => { try { const v = localStorage.getItem("yasai-lang"); if (v) return v; } catch {} return /^ja/i.test(navigator.language) ? "ja" : "en"; })();
-const T = k => I18N[LANG][k];
+const T = k => I18N.ja[k];
 function applyLang(){
-  document.documentElement.lang = LANG;
   document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = T(el.dataset.i18n); });
   document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = T(el.dataset.i18nHtml); });
   document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = T(el.dataset.i18nPh); });
   document.querySelectorAll("[data-i18n-label]").forEach(el => { el.setAttribute("aria-label", T(el.dataset.i18nLabel)); });
-  document.getElementById("lang").textContent = LANG === "ja" ? "EN" : "日本語";
 }
 applyLang();
 
@@ -368,7 +334,7 @@ let spacing = 0.07, baseDist = 0.4, zoom = 1, zoomTarget = 1, zoomMin = 0.3;
 const dots = $("dots");
 CHARS.forEach((c, i) => {
   const d = document.createElement("button");
-  d.setAttribute("role", "tab"); d.setAttribute("aria-label", c.label_en);
+  d.setAttribute("role", "tab"); d.setAttribute("aria-label", c.label);
   d.onclick = () => { target = i; };
   dots.appendChild(d);
 });
@@ -376,10 +342,10 @@ function show(i){
   if (i === cur) return;
   cur = i;
   const c = CHARS[i];
-  $("veg").textContent = LANG === "ja" ? c.label : c.label_en;
-  $("sub").textContent = LANG === "ja" ? `${c.en} · ${c.code}` : `${c.label} · ${c.code}`;
+  $("veg").textContent = c.label;
+  $("sub").textContent = `${c.en} · ${c.code}`;
   $("count").textContent = `${String(i + 1).padStart(2, "0")} / ${N}`;
-  $("desc").textContent = LANG === "ja" ? c.short : c.short_en;
+  $("desc").textContent = c.short;
   $("flip").style.setProperty("--tint", c.color);
   [...dots.children].forEach((d, j) => d.setAttribute("aria-current", j === i));
   $("load").hidden = !!rigs[i];
@@ -392,7 +358,7 @@ addEventListener("keydown", e => {
 
 /* ---------- touch: swipe to change, tap to zoom in/out, pinch to zoom; the button flips ---------- */
 const canvas = renderer.domElement, pts = new Map();
-let drag = null, pinch0 = 0, zoom0 = 1, asked = false;
+let drag = null, pinch0 = 0, zoom0 = 1;
 canvas.addEventListener("pointerdown", e => {
   canvas.setPointerCapture(e.pointerId);
   pts.set(e.pointerId, {x: e.clientX, y: e.clientY});
@@ -420,8 +386,6 @@ function release(e){
   pts.delete(e.pointerId);
   if (!drag) return;
   const now = performance.now(), moved = Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0);
-  // iOS asks for motion access only from a gesture; ask once, quietly, on the first touch
-  if (!asked && typeof DeviceMotionEvent?.requestPermission === "function"){ asked = true; DeviceMotionEvent.requestPermission().catch(() => {}); }
   if (moved < 10 && now - drag.t0 < 300){
     zoomTarget = zoomTarget < (1 + zoomMin) / 2 ? 1 : zoomMin;   // tap: card fills the screen, tap again: back
   } else {
@@ -435,21 +399,7 @@ $("flip").onclick = () => { const r = rigs[cur]; if (r) r.target = Math.round(r.
 canvas.addEventListener("pointercancel", release);
 canvas.addEventListener("wheel", e => { e.preventDefault(); zoom = zoomTarget = THREE.MathUtils.clamp(zoom * Math.exp(e.deltaY * 0.001), zoomMin, 1); }, {passive: false});
 
-/* ---------- tilt & shake: the phone's own gravity and motion, where the browser shares it ---------- */
 const grav = new THREE.Vector3(0, -9.8, 0);
-let sign = 0;
-addEventListener("devicemotion", e => {
-  const a = e.accelerationIncludingGravity;
-  if (!a || a.x == null) return;
-  if (!sign){   // spec: reading points "up" at rest; some browsers flip it — calibrate once
-    if (Math.hypot(a.x, a.y, a.z) < 5) return;
-    const dom = Math.abs(a.y) > Math.abs(a.z) ? a.y : a.z;
-    sign = dom > 0 ? -1 : 1;
-  }
-  const ang = (screen.orientation?.angle ?? window.orientation ?? 0) * Math.PI / 180, c = Math.cos(ang), s = Math.sin(ang);
-  grav.set(sign * (a.x * c + a.y * s), sign * (-a.x * s + a.y * c), sign * a.z);
-  if (grav.length() > 30) grav.setLength(30);
-});
 
 /* ---------- layout: fit the whole keychain between the header and footer, card at screen centre ---------- */
 let camY0 = 0;
@@ -485,29 +435,25 @@ resize();
 /* ---------- entry: form → Google Sheet → ticket to screenshot and DM ---------- */
 const formPanel = $("formPanel"), ticketPanel = $("ticketPanel");
 let photoData = "";
-const TICKET_KEY = "yasai-ticket";
-const loadTicket = () => {
-  let t = null;
-  try { t = JSON.parse(localStorage.getItem(TICKET_KEY) || "null"); } catch {}
-  if (t && !t.vegJa){ t.vegJa = t.vegetable; t.vegEn = CHARS.find(c => c.label === t.vegetable)?.label_en ?? t.vegetable; }   // tickets saved by older versions
-  return t;
-};
-const saveTicket = t => { try { localStorage.setItem(TICKET_KEY, JSON.stringify(t)); } catch {} };
-$("openTicket").hidden = !loadTicket();
-
-$("lang").onclick = () => {
-  LANG = LANG === "ja" ? "en" : "ja";
-  try { localStorage.setItem("yasai-lang", LANG); } catch {}
-  applyLang();
-  const i = cur; cur = -1; show(i);
-  if (!ticketPanel.hidden){ const t = loadTicket(); if (t) showTicket(t); }
-  requestAnimationFrame(resize);   // text height may have changed
-};
+const TICKETS_KEY = "yasai-tickets";
+// newest first; also picks up the single ticket older versions stored
+function loadTickets(){
+  let ts = [];
+  try { ts = JSON.parse(localStorage.getItem(TICKETS_KEY) || "[]"); } catch {}
+  try {
+    const old = JSON.parse(localStorage.getItem("yasai-ticket") || "null");
+    if (old){ old.vegJa = old.vegJa || old.vegetable; ts.push(old); localStorage.removeItem("yasai-ticket"); saveTickets(ts); }
+  } catch {}
+  return ts;
+}
+const saveTickets = ts => { try { localStorage.setItem(TICKETS_KEY, JSON.stringify(ts)); } catch {} };
+let tickets = loadTickets();
+$("openTicket").hidden = !tickets.length;
 
 $("apply").onclick = () => {
   const c = CHARS[cur];
   $("chosenDot").style.background = c.color;
-  $("chosenName").textContent = T("alien")(LANG === "ja" ? c.label : c.label_en);
+  $("chosenName").textContent = T("alien")(c.label);
   $("formErr").textContent = "";
   formPanel.hidden = false; formPanel.scrollTop = 0;
 };
@@ -547,7 +493,7 @@ $("entry").onsubmit = async e => {
   $("formErr").textContent = "";
   const c = CHARS[cur];
   // the sheet is for the booth staff, so it always gets the Japanese name; "なし" = DM only
-  const entry = {vegetable: c.label, nickname: nick, instagram: "", phone: tel || "なし", lang: LANG};
+  const entry = {vegetable: c.label, nickname: nick, instagram: "", phone: tel || "なし"};
   const btn = $("submitBtn"); btn.disabled = true; btn.textContent = T("sending");
   try {
     let number, time, demo = false;
@@ -561,13 +507,13 @@ $("entry").onsubmit = async e => {
       demo = true; number = Math.floor(Math.random() * 90) + 10;
       time = new Date().toLocaleString("ja-JP", {month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"});
     }
-    const ticket = {nickname: nick, vi: cur, vegJa: c.label, vegEn: c.label_en, number, time, demo, color: c.color, photo: photoData};
-    saveTicket(ticket);
+    tickets.unshift({nickname: nick, vegJa: c.label, number, time, demo, color: c.color, photo: photoData});
+    saveTickets(tickets);
     $("openTicket").hidden = false;
     $("entry").reset();
     photoData = ""; $("photoPreview").hidden = true; $("photoHint").hidden = false; $("photoBox").classList.remove("has");
     formPanel.hidden = true;
-    showTicket(ticket);
+    showTickets();
   } catch {
     err("errSend");
   } finally {
@@ -575,24 +521,35 @@ $("entry").onsubmit = async e => {
   }
 };
 
-function showTicket(t){
-  $("ticket").style.setProperty("--c", t.color);
-  $("tNo").textContent = t.number; $("tTime").textContent = T("received")(t.time);
-  $("tPhoto").src = t.photo || ""; $("tNick").textContent = t.nickname;
-  $("tVeg").textContent = T("alien")(LANG === "ja" ? t.vegJa : t.vegEn);
-  $("tDemo").hidden = !t.demo;
+function ticketEl(t){
+  const el = document.createElement("div");
+  el.className = "ticket"; el.style.setProperty("--c", t.color);
+  el.innerHTML = `${t.demo ? '<span class="t-demo">TEST</span>' : ""}
+    <div class="t-eyebrow">${T("tEyebrow")}</div><div class="t-title">${T("tTitle")}</div>
+    <div class="t-no"><b></b><small></small></div><div class="t-cut"></div>
+    <div class="t-body"><img alt=""><dl><dt>${T("tName")}</dt><dd class="n"></dd><dt>${T("tVeg")}</dt><dd class="v"></dd></dl></div>`;
+  el.querySelector("b").textContent = t.number;
+  el.querySelector("small").textContent = T("received")(t.time);
+  el.querySelector("img").src = t.photo || "";
+  el.querySelector(".n").textContent = t.nickname;
+  el.querySelector(".v").textContent = T("alien")(t.vegJa);
+  return el;
+}
+function showTickets(){
+  $("tickets").replaceChildren(...tickets.map(ticketEl));
   $("dmBtn").disabled = !CONFIG.instagram;
-  if (!CONFIG.instagram) $("dmNote").textContent = T("dmUnset");
+  $("dmNote").innerHTML = CONFIG.instagram ? T("dmNote") : T("dmUnset");
   ticketPanel.hidden = false; ticketPanel.scrollTop = 0;
 }
-$("openTicket").onclick = () => { const t = loadTicket(); if (t) showTicket(t); };
-$("closeTicket").onclick = $("backToKeys").onclick = () => { ticketPanel.hidden = true; };
+$("openTicket").onclick = showTickets;
+$("addMore").onclick = () => { ticketPanel.hidden = true; };
 $("dmBtn").onclick = () => {
-  const t = loadTicket(); if (!t || !CONFIG.instagram) return;
+  if (!tickets.length || !CONFIG.instagram) return;
   const go = () => { location.href = `https://ig.me/m/${CONFIG.instagram}`; };
   // copy inside the tap, then open the booth's DM thread
-  (navigator.clipboard?.writeText(T("dmText")(t)) ?? Promise.reject()).catch(() => {}).finally(go);
+  (navigator.clipboard?.writeText(T("dmText")(tickets)) ?? Promise.reject()).catch(() => {}).finally(go);
 };
+if (tickets.length) showTickets();   // after signing up, the tickets are the home screen
 
 /* ---------- loop ---------- */
 let acc = 0, prevT = performance.now();
