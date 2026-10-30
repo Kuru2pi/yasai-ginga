@@ -126,7 +126,11 @@ textarea{resize:none;min-height:72px}
 .t-photo{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;margin-top:16px;background:#eee}
 .t-demo{display:inline-block;margin-left:6px;font-size:10px;font-weight:400;letter-spacing:.1em;color:#c62828;border:1px solid #c62828;border-radius:4px;padding:1px 5px;vertical-align:1px}
 /* sized so the 15-character line never wraps on a phone */
-.show-staff{margin:20px 0 2px;text-align:center;white-space:nowrap;font-weight:700;color:#d81e1e;letter-spacing:.02em;
+.sample{position:absolute;left:50%;top:30%;translate:-50% -50%;pointer-events:none;cursor:default;font-family:var(--dot);font-size:13px;letter-spacing:.18em;padding:5px 12px 5px 14px;border-radius:999px;transition:opacity .2s}
+.sample:active{transform:none}
+.t-del{position:absolute;top:10px;right:10px;width:26px;height:26px;display:grid;place-items:center;padding:0;border-radius:50%;font:inherit;font-size:18px;line-height:1;color:#666}
+.ticket.deletable .t-top{padding-right:30px}
+.show-staff{margin:4px 0 14px;text-align:center;white-space:nowrap;font-weight:700;color:#d81e1e;letter-spacing:.02em;
   font-size:clamp(14px,calc((min(100vw,440px) - 48px) / 15.6),26px)}
 .steps{margin:22px 0 14px;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:700}
 .steps li{display:flex;gap:10px;align-items:center}
@@ -160,6 +164,7 @@ textarea{resize:none;min-height:72px}
     <p id="desc"></p>
     <div class="dots" id="dots" role="tablist"></div>
   </footer>
+  <div class="sample glass" id="sample" aria-hidden="true">SAMPLE</div>
   <button class="cta glass" id="apply" data-i18n="apply">この野菜にする</button>
   <button class="flip glass" id="flip" data-i18n-label="flip" aria-label="裏返す">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -209,8 +214,8 @@ textarea{resize:none;min-height:72px}
     <div class="panel-head">
       <h2 id="ticketTitle" data-i18n="ticketTitle">受付票</h2>
     </div>
-    <div class="tickets" id="tickets"></div>
     <p class="show-staff" data-i18n="showStaff">この画面を店員に見せてください</p>
+    <div class="tickets" id="tickets"></div>
     <ol class="steps">
       <li><b>1</b><span data-i18n="step1">この画面をスクショ</span></li>
       <li><b>2</b><span data-i18n="step2">下のボタンから DM で送ってね</span></li>
@@ -233,6 +238,8 @@ import {RoomEnvironment} from "three/addons/environments/RoomEnvironment.js";
 const CONFIG = {
   endpoint: "https://script.google.com/macros/s/AKfycbz8CCTtf5OtnjJeY3oeSDjKSe39hJZAbXC58oG2UL_0sLvGY9Tdiv4_-eq38eJWQqUnbA/exec",    // Google Apps Script web-app URL (…/exec). Empty = test mode: nothing is sent
   instagram: "808yaoya_shop",   // booth account the DM button opens, without @
+  allowDelete: true,   // small (−) button on each ticket for clearing test entries; set false for the festival
+  sample: true,        // "SAMPLE" tag above the card
 };
 
 const CHARS = window.CHARS || await (await fetch("characters.json")).json();
@@ -454,6 +461,8 @@ function resize(){
   zoom = THREE.MathUtils.clamp(zoom, zoomMin, 1); zoomTarget = THREE.MathUtils.clamp(zoomTarget, zoomMin, 1);
   // CTA just under the card; flip button on the card's top-right corner (both fixed at the resting pose)
   $("apply").style.top = (cardZero + CB * pxPerM + 14).toFixed(1) + "px";
+  // SAMPLE tag sits on the chain just above the card's hanging tab
+  $("sample").style.top = (cardZero - (CT + 0.007) * pxPerM).toFixed(1) + "px";
   $("flip").style.left = (w / 2 + 0.030 * pxPerM - 4).toFixed(1) + "px";
   $("flip").style.top = (cardZero - 0.041 * pxPerM + 4).toFixed(1) + "px";
 }
@@ -566,6 +575,18 @@ function ticketEl(t){
   el.querySelector("img").src = t.photo || "";
   el.querySelector(".n").textContent = t.nickname;
   el.querySelector(".v").textContent = T("alien")(t.vegJa);
+  if (CONFIG.allowDelete){
+    el.classList.add("deletable");
+    const del = document.createElement("button");
+    del.className = "t-del glass"; del.textContent = "−"; del.setAttribute("aria-label", "この受付票を削除");
+    del.onclick = () => {
+      if (!confirm(`No.${pad3(t.number)} の受付票を削除しますか？\n（スプレッドシートの記録は消えません）`)) return;
+      tickets = tickets.filter(x => x !== t); saveTickets(tickets);
+      if (tickets.length) showTickets();
+      else { ticketPanel.hidden = true; $("openTicket").hidden = true; }
+    };
+    el.appendChild(del);
+  }
   return el;
 }
 function showTickets(){
@@ -590,6 +611,7 @@ $("startBtn").onclick = () => { $("introPanel").hidden = true; };
 /* ---------- loop ---------- */
 let acc = 0, prevT = performance.now();
 const g2 = new THREE.Vector3();
+$("sample").hidden = !CONFIG.sample;
 show(0);
 renderer.setAnimationLoop(t => {
   const dt = Math.min((t - prevT) / 1000, 0.05); prevT = t;
@@ -622,7 +644,7 @@ renderer.setAnimationLoop(t => {
   const r = rigs[cur], f = zoomMin < 1 ? (1 - zoom) / (1 - zoomMin) : 0;
   const ui = String(THREE.MathUtils.clamp(1 - f * 2.5, 0, 1));   // overlay text steps aside while zoomed
   if ($("header").style.opacity !== ui){
-    for (const id of ["header", "footer", "flip", "apply"]) $(id).style.opacity = ui;
+    for (const id of ["header", "footer", "flip", "apply", "sample"]) $(id).style.opacity = ui;
     $("flip").style.pointerEvents = $("apply").style.pointerEvents = +ui < 0.5 ? "none" : "";
   }
   const tx = f * ((cur - pos) * spacing + (r ? r.center.x : 0)), ty = camY0 * (1 - f) + (r ? r.center.y * f : 0);
