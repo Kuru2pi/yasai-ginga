@@ -44,12 +44,12 @@ footer p{margin:0;font-size:13px;line-height:1.7;color:var(--fg);max-width:34em;
 .flip{position:absolute;left:70%;top:20%;transform:translate(-50%,-50%);width:46px;height:46px;transition:opacity .2s;display:grid;place-items:center;padding:0;border:0;border-radius:50%;cursor:pointer;color:#1a1a1a;isolation:isolate;
   /* glass: a lens-like fill lit from the top-left, tinted faintly by the character's colour */
   background:
-    radial-gradient(120% 120% at 28% 18%,rgba(255,255,255,.95) 0%,rgba(255,255,255,.45) 38%,rgba(255,255,255,.12) 68%,rgba(255,255,255,.3) 100%),
+    radial-gradient(120% 120% at 28% 18%,rgba(255,255,255,.6) 0%,rgba(255,255,255,.18) 38%,rgba(255,255,255,.04) 68%,rgba(255,255,255,.12) 100%),
     linear-gradient(180deg,color-mix(in srgb,var(--tint) 2%,transparent),color-mix(in srgb,var(--tint) 7%,transparent));
-  -webkit-backdrop-filter:blur(18px) saturate(190%) brightness(1.06);backdrop-filter:blur(18px) saturate(190%) brightness(1.06);
+  -webkit-backdrop-filter:blur(6px) saturate(160%) brightness(1.04);backdrop-filter:blur(6px) saturate(160%) brightness(1.04);
   box-shadow:
-    0 14px 28px -10px rgba(0,0,0,.22),
-    0 3px 8px rgba(0,0,0,.10),
+    0 10px 22px -10px rgba(0,0,0,.16),
+    0 2px 6px rgba(0,0,0,.06),
     inset 0 2px 1px rgba(255,255,255,.95),
     inset 0 -12px 18px -8px rgba(0,0,0,.06),
     inset 0 0 0 1px rgba(255,255,255,.45)}
@@ -222,7 +222,7 @@ import {RoomEnvironment} from "three/addons/environments/RoomEnvironment.js";
 
 /* ---------- settings for the festival booth ---------- */
 const CONFIG = {
-  endpoint: "",    // Google Apps Script web-app URL (…/exec). Empty = test mode: nothing is sent
+  endpoint: "https://script.google.com/macros/s/AKfycbz8CCTtf5OtnjJeY3oeSDjKSe39hJZAbXC58oG2UL_0sLvGY9Tdiv4_-eq38eJWQqUnbA/exec",    // Google Apps Script web-app URL (…/exec). Empty = test mode: nothing is sent
   instagram: "808yaoya_shop",   // booth account the DM button opens, without @
 };
 
