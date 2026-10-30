@@ -41,7 +41,7 @@ footer p{margin:0;font-size:13px;line-height:1.7;color:var(--fg);max-width:34em;
 .dots button{width:6px;height:6px;padding:0;border:0;border-radius:3px;background:var(--line);cursor:pointer;transition:width .25s,background .25s}
 .dots button[aria-current="true"]{width:18px;background:var(--fg)}
 .dots button:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
-.flip{position:absolute;left:50%;top:70%;transform:translate(-50%,0);width:56px;height:56px;display:grid;place-items:center;padding:0;border:0;border-radius:50%;cursor:pointer;color:#1a1a1a;isolation:isolate;
+.flip{position:absolute;left:70%;top:20%;transform:translate(-50%,-50%);width:46px;height:46px;transition:opacity .2s;display:grid;place-items:center;padding:0;border:0;border-radius:50%;cursor:pointer;color:#1a1a1a;isolation:isolate;
   /* glass: a lens-like fill lit from the top-left, tinted faintly by the character's colour */
   background:
     radial-gradient(120% 120% at 28% 18%,rgba(255,255,255,.95) 0%,rgba(255,255,255,.45) 38%,rgba(255,255,255,.12) 68%,rgba(255,255,255,.3) 100%),
@@ -58,14 +58,14 @@ footer p{margin:0;font-size:13px;line-height:1.7;color:var(--fg);max-width:34em;
   background:linear-gradient(145deg,#fff 0%,rgba(255,255,255,.2) 35%,rgba(0,0,0,.18) 65%,rgba(255,255,255,.9) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 /* specular glint */
-.flip::after{content:"";position:absolute;top:7px;left:12px;width:22px;height:10px;border-radius:50%;z-index:-1;
+.flip::after{content:"";position:absolute;top:6px;left:10px;width:18px;height:8px;border-radius:50%;z-index:-1;
   background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,0));transform:rotate(-24deg)}
-.flip svg{width:24px;height:24px;filter:drop-shadow(0 1px 0 rgba(255,255,255,.8))}
+.flip svg{width:21px;height:21px;filter:drop-shadow(0 1px 0 rgba(255,255,255,.8))}
 .flip:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
 .load{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;letter-spacing:.1em;color:var(--muted);pointer-events:none}
 
 /* ---- entry: call-to-action, form and ticket ---- */
-.cta{pointer-events:auto;font:inherit;font-size:15px;font-weight:700;letter-spacing:.04em;color:#fff;background:var(--fg);border:0;border-radius:999px;padding:13px 28px;cursor:pointer}
+.cta{position:absolute;left:50%;top:80%;transform:translate(-50%,0);white-space:nowrap;transition:opacity .2s;font:inherit;font-size:15px;font-weight:700;letter-spacing:.04em;color:#fff;background:var(--fg);border:0;border-radius:999px;padding:13px 28px;cursor:pointer}
 .cta:focus-visible,.btn:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
 .ticket-link{pointer-events:auto;font:inherit;font-size:11px;letter-spacing:.06em;color:var(--fg);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin-top:6px;cursor:pointer}
 .panel{position:absolute;inset:0;z-index:5;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
@@ -145,9 +145,9 @@ textarea{resize:none;min-height:72px}
   </header>
   <footer id="footer">
     <p id="desc"></p>
-    <button class="cta" id="apply">この野菜で似顔絵を申し込む</button>
     <div class="dots" id="dots" role="tablist" aria-label="キャラクター"></div>
   </footer>
+  <button class="cta" id="apply">この野菜にする</button>
   <button class="flip" id="flip" aria-label="裏返す">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M20 11a8 8 0 0 0-14.3-4.9"/><path d="M5.5 2.5v4h4"/>
@@ -170,15 +170,6 @@ textarea{resize:none;min-height:72px}
       <label class="field"><span>ニックネーム</span>
         <input type="text" id="nick" maxlength="20" autocomplete="nickname" placeholder="例：じゅん">
       </label>
-      <div class="field"><span>似顔絵の希望</span>
-        <div class="chips" role="radiogroup">
-          <label><input type="radio" name="wish" value="かっこよく"><span>かっこよく</span></label>
-          <label><input type="radio" name="wish" value="かわいく"><span>かわいく</span></label>
-          <label><input type="radio" name="wish" value="おもしろく"><span>おもしろく</span></label>
-          <label><input type="radio" name="wish" value="おまかせ" checked><span>おまかせ</span></label>
-        </div>
-        <textarea id="note" maxlength="100" placeholder="ひとこと（任意）例：メガネは外して描いてほしい"></textarea>
-      </div>
       <div class="field"><span>Instagram<em>完成のお知らせを DM で送ります</em></span>
         <div class="at"><input type="text" id="ig" maxlength="30" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="instagram_id"></div>
         <label class="check"><input type="checkbox" id="noIg">Instagram を持っていない</label>
@@ -208,7 +199,6 @@ textarea{resize:none;min-height:72px}
         <dl>
           <dt>なまえ</dt><dd id="tNick"></dd>
           <dt>野菜</dt><dd id="tVeg"></dd>
-          <dt>希望</dt><dd id="tWish"></dd>
         </dl>
       </div>
     </div>
@@ -233,7 +223,7 @@ import {RoomEnvironment} from "three/addons/environments/RoomEnvironment.js";
 /* ---------- settings for the festival booth ---------- */
 const CONFIG = {
   endpoint: "",    // Google Apps Script web-app URL (…/exec). Empty = test mode: nothing is sent
-  instagram: "",   // booth account the DM button opens, without @
+  instagram: "808yaoya_shop",   // booth account the DM button opens, without @
 };
 
 const CHARS = window.CHARS || await (await fetch("characters.json")).json();
@@ -422,12 +412,16 @@ let camY0 = 0;
 function resize(){
   const w = app.clientWidth, h = app.clientHeight;
   renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
-  // the card (tab top +47.8 mm to bottom -41 mm) plus the flip button fit between the title and the
-  // description; the clasp may rise beside the title, never over text
-  const CT = 0.0478, CB = 0.041, BTN = 56 + 12;
+  // vertical stack: clasp top (+92.7 mm) … card tab (+47.8) … card bottom (-41) … gap … CTA button.
+  // The card and CTA sit between the title and the description; the clasp may rise beside the
+  // title but must stay inside the screen.
+  const TOP = 0.0927, CT = 0.0478, CB = 0.041, CTA = 14 + 48, EDGE = 10;
   const regTop = $("header").offsetHeight + 10, regBot = $("footer").offsetTop - 10, regH = regBot - regTop;
-  const pxPerM = Math.min((regH - BTN) / (CT + CB), 0.70 * w / 0.06);   // card ≈ 70% of the screen width
-  const blockTop = regTop + (regH - (CT + CB) * pxPerM - BTN) / 2;
+  const pxPerM = Math.min(
+    (regH - CTA) / (CT + CB),            // card + CTA between the texts
+    (regBot - EDGE - CTA) / (TOP + CB),  // clasp stays on screen
+    0.70 * w / 0.06);                    // card ≈ 70% of the screen width at most
+  const blockTop = Math.max(regTop + (regH - (CT + CB) * pxPerM - CTA) / 2, EDGE + (TOP - CT) * pxPerM);
   const cardZero = blockTop + CT * pxPerM;   // screen y of the card's centre
   const halfH = h / 2 / pxPerM;
   camY0 = (cardZero - h / 2) / pxPerM;
@@ -436,7 +430,10 @@ function resize(){
   spacing = Math.min(halfW - peek + 0.03 * 0.82, 0.085);
   zoomMin = Math.min(1, 0.0306 / halfW);   // closest zoom: the card spans the full width
   zoom = THREE.MathUtils.clamp(zoom, zoomMin, 1); zoomTarget = THREE.MathUtils.clamp(zoomTarget, zoomMin, 1);
-  $("flip").style.top = (blockTop + (CT + CB) * pxPerM + 12).toFixed(1) + "px";
+  // CTA just under the card; flip button on the card's top-right corner (both fixed at the resting pose)
+  $("apply").style.top = (cardZero + CB * pxPerM + 14).toFixed(1) + "px";
+  $("flip").style.left = (w / 2 + 0.030 * pxPerM - 4).toFixed(1) + "px";
+  $("flip").style.top = (cardZero - 0.041 * pxPerM + 4).toFixed(1) + "px";
 }
 new ResizeObserver(resize).observe(app);
 resize();
@@ -492,8 +489,7 @@ $("entry").onsubmit = async e => {
   if (!$("agree").checked) return err("下の内容に同意のチェックを入れてください。");
   err("");
   const c = CHARS[cur];
-  const entry = {vegetable: c.label, nickname: nick, wish: document.querySelector("input[name=wish]:checked").value,
-                 note: $("note").value.trim(), instagram: noIg ? "" : ig, phone: tel};
+  const entry = {vegetable: c.label, nickname: nick, instagram: noIg ? "" : ig, phone: tel};
   const btn = $("submitBtn"); btn.disabled = true; btn.textContent = "送信中…";
   try {
     let number, time, demo = false;
@@ -525,7 +521,7 @@ function showTicket(t){
   $("ticket").style.setProperty("--c", t.color);
   $("tNo").textContent = t.number; $("tTime").textContent = `${t.time} 受付`;
   $("tPhoto").src = t.photo || ""; $("tNick").textContent = t.nickname;
-  $("tVeg").textContent = `${t.vegetable}星人`; $("tWish").textContent = t.wish;
+  $("tVeg").textContent = `${t.vegetable}星人`;
   $("tDemo").hidden = !t.demo;
   $("dmBtn").disabled = !CONFIG.instagram;
   if (!CONFIG.instagram) $("dmNote").textContent = "（DM の送り先がまだ設定されていません）";
@@ -535,7 +531,7 @@ $("openTicket").onclick = () => { const t = loadTicket(); if (t) showTicket(t); 
 $("closeTicket").onclick = $("backToKeys").onclick = () => { ticketPanel.hidden = true; };
 $("dmBtn").onclick = () => {
   const t = loadTicket(); if (!t || !CONFIG.instagram) return;
-  const text = `【ヤサイギンガ 似顔絵受付】\nNo.${t.number}\n${t.nickname}／${t.vegetable}星人／${t.wish}`;
+  const text = `【ヤサイギンガ 似顔絵受付】\nNo.${t.number}\n${t.nickname}／${t.vegetable}星人`;
   const go = () => { location.href = `https://ig.me/m/${CONFIG.instagram}`; };
   // copy inside the tap, then open the booth's DM thread
   (navigator.clipboard?.writeText(text) ?? Promise.reject()).catch(() => {}).finally(go);
@@ -575,7 +571,10 @@ renderer.setAnimationLoop(t => {
   // zooming in follows the centred card so its print stays readable
   const r = rigs[cur], f = zoomMin < 1 ? (1 - zoom) / (1 - zoomMin) : 0;
   const ui = String(THREE.MathUtils.clamp(1 - f * 2.5, 0, 1));   // overlay text steps aside while zoomed
-  if ($("header").style.opacity !== ui){ $("header").style.opacity = ui; $("footer").style.opacity = ui; }
+  if ($("header").style.opacity !== ui){
+    for (const id of ["header", "footer", "flip", "apply"]) $(id).style.opacity = ui;
+    $("flip").style.pointerEvents = $("apply").style.pointerEvents = +ui < 0.5 ? "none" : "";
+  }
   const tx = f * ((cur - pos) * spacing + (r ? r.center.x : 0)), ty = camY0 * (1 - f) + (r ? r.center.y * f : 0);
   camera.position.set(tx, ty, baseDist * zoom); camera.lookAt(tx, ty, 0);
   renderer.render(scene, camera);
