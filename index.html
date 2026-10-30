@@ -13,12 +13,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ヤサイギンガ">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
 <style>
 /* Layout: full-screen swiper of hanging keychains; name floats top-left, description and dots float at the bottom */
 :root{
   --bg:#ffffff; --fg:#111111; --muted:#777777; --line:#dddddd;
   --tint:#888888;
+  --dot:"DotGothic16","Hiragino Kaku Gothic ProN",monospace;
   --body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
   color-scheme:light;
 }
@@ -68,7 +69,9 @@ footer p{margin:0;font-size:13px;line-height:1.6;color:var(--fg);max-width:34em;
 
 /* ---- entry: call-to-action, form and ticket ---- */
 .cta{position:absolute;left:50%;top:80%;translate:-50% 0;white-space:nowrap;transition:opacity .2s;font:inherit;font-size:15px;font-weight:700;letter-spacing:.04em;border-radius:999px;padding:14px 30px}
-.ticket-link{pointer-events:auto;font:inherit;font-size:11px;letter-spacing:.06em;border-radius:999px;padding:5px 12px;margin-top:6px}
+.title-row{display:flex;align-items:center;gap:10px}
+.back{pointer-events:auto;width:38px;height:38px;flex:none;display:grid;place-items:center;padding:0;border-radius:50%}
+.back svg{width:20px;height:20px;margin-left:-2px}
 .panel{position:absolute;inset:0;z-index:5;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
   padding:0 max(20px,env(safe-area-inset-right,0px)) 32px max(20px,env(safe-area-inset-left,0px));animation:rise .28s ease-out}
 @keyframes rise{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
@@ -114,7 +117,7 @@ textarea{resize:none;min-height:72px}
 .t-eyebrow{font-size:11px;letter-spacing:.12em;color:var(--muted)}
 .t-title{font-size:13px;font-weight:700;margin-top:2px}
 .t-no{display:flex;align-items:baseline;justify-content:space-between;margin-top:12px}
-.t-no b{font-size:56px;line-height:1;font-weight:700;letter-spacing:.02em;color:var(--c);font-variant-numeric:tabular-nums}
+.t-no b{font-family:var(--dot);font-size:60px;line-height:1;font-weight:400;letter-spacing:.04em;color:var(--c);font-variant-numeric:tabular-nums}
 .t-no small{font-size:12px;color:var(--muted)}
 .t-body{display:flex;gap:14px;margin-top:18px;align-items:center}
 .t-body img{width:116px;height:87px;border-radius:14px;object-fit:cover;flex:none;background:#eee}
@@ -127,20 +130,28 @@ textarea{resize:none;min-height:72px}
 .steps li b{width:22px;height:22px;border-radius:50%;background:var(--fg);color:#fff;display:grid;place-items:center;font-size:12px;flex:none}
 .note{font-size:12px;color:var(--muted);line-height:1.7;margin:10px 0 18px;text-align:center}
 .stack{display:flex;flex-direction:column;gap:10px}
+.intro{display:flex;flex-direction:column;justify-content:center;padding-block:28px}
+.intro h2{font-family:var(--dot);font-weight:400;font-size:28px;line-height:1.35;margin:8px 0 12px;text-wrap:balance}
+.intro .lead{margin:0 0 22px;font-size:14px;line-height:1.8;max-width:30em}
+.intro-steps{list-style:none;margin:0 0 28px;padding:0;display:flex;flex-direction:column;gap:14px}
+.intro-steps li{display:flex;gap:12px;align-items:flex-start}
+.intro-steps b{font-family:var(--dot);font-weight:400;font-size:15px;width:30px;height:30px;flex:none;display:grid;place-items:center;border:1.5px solid var(--fg);border-radius:50%}
+.intro-steps strong{display:block;font-size:15px}
+.intro-steps span{display:block;font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:2px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}.panel{animation:none}}
 </style>
 
 <div class="app" id="app">
   <div class="load" id="load">LOADING</div>
   <header id="header">
-    <div>
-      <h1 id="veg">トマト</h1>
-      <div class="sub" id="sub">TOMATO · TM01</div>
+    <div class="title-row">
+      <button class="back glass" id="openTicket" hidden data-i18n-label="toTickets" aria-label="受付票にもどる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div>
+        <h1 id="veg">トマト</h1>
+        <div class="sub" id="sub">TOMATO · TM01</div>
+      </div>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end">
-      <div class="count" id="count">01 / 10</div>
-      <button class="ticket-link glass" id="openTicket" hidden data-i18n="ticketLink">受付票</button>
-    </div>
+    <div class="count" id="count">01 / 10</div>
   </header>
   <footer id="footer">
     <p id="desc"></p>
@@ -153,6 +164,19 @@ textarea{resize:none;min-height:72px}
       <path d="M4 13a8 8 0 0 0 14.3 4.9"/><path d="M18.5 21.5v-4h-4"/>
     </svg>
   </button>
+
+  <section class="panel intro" id="introPanel" hidden aria-labelledby="introTitle">
+    <div class="t-eyebrow">ヤサイギンガ 星間航旅券</div>
+    <h2 id="introTitle">あなたの似顔絵を、<br>ヤサイギンガのカードに。</h2>
+    <p class="lead">好きな野菜を選んで、顔写真を送るだけ。<br>完成したら Instagram の DM でお知らせします。</p>
+    <ol class="intro-steps">
+      <li><b>1</b><div><strong>野菜をえらぶ</strong><span>左右にスワイプして、好きな野菜星人を選びます。</span></div></li>
+      <li><b>2</b><div><strong>顔写真とニックネームを送る</strong><span>写真はその場で撮影できます。</span></div></li>
+      <li><b>3</b><div><strong>受付票をスクショして DM</strong><span>Instagram の @808yaoya_shop に送ってください。</span></div></li>
+      <li><b>4</b><div><strong>完成したら DM でお知らせ</strong><span>受付票の番号を見せて受け取ってね。</span></div></li>
+    </ol>
+    <button class="btn glass" id="startBtn">はじめる</button>
+  </section>
 
   <section class="panel" id="formPanel" hidden aria-labelledby="formTitle">
     <div class="panel-head">
@@ -216,7 +240,7 @@ CHARS.forEach(c => { const [num, en] = c.id.split(" / ")[0].split("."); c.num = 
 /* ---------- UI text (kept in one place so wording is easy to change) ---------- */
 const I18N = {
   ja: {
-    apply: "この野菜にする", flip: "裏返す", back: "もどる", close: "とじる", ticketLink: "受付票",
+    apply: "この野菜にする", flip: "裏返す", back: "もどる", close: "とじる", toTickets: "受付票にもどる",
     formTitle: "似顔絵の受付", photoHint: "タップして<br>顔写真を撮る・選ぶ", nick: "ニックネーム", nickPh: "例：じゅん",
     tel: "電話番号", telNote: "任意（入れない人は、受付票を必ず DM で送ってね）",
     agree: "顔写真と電話番号は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。",
@@ -230,7 +254,7 @@ const I18N = {
     errNick: "ニックネームを入れてください。", errTel: "電話番号を確認してください（ハイフンはあってもなくても大丈夫です）。",
     errAgree: "下の内容に同意のチェックを入れてください。",
     errSend: "送信できませんでした。電波のよい場所でもう一度お試しいただくか、スタッフに声をかけてください。",
-    dmText: ts => "【ヤサイギンガ 似顔絵受付】\n" + ts.map(t => `No.${t.number}　${t.nickname}／${t.vegJa}星人`).join("\n"),
+    dmText: ts => "【ヤサイギンガ 似顔絵受付】\n" + ts.map(t => `No.${String(t.number).padStart(3, "0")}　${t.nickname}／${t.vegJa}星人`).join("\n"),
   },
 };
 const T = k => I18N.ja[k];
@@ -409,7 +433,7 @@ function resize(){
   // vertical stack: clasp top (+77.5 mm) … card tab (+47.8) … card bottom (-41) … gap … CTA button.
   // The card and CTA sit between the title and the description; the clasp may rise beside the
   // title but must stay inside the screen.
-  const TOP = 0.0775, CT = 0.0478, CB = 0.041, CTA = 14 + 48, EDGE = 10;
+  const TOP = 0.0775, CT = 0.0478, CB = 0.041, CTA = 14 + 48, EDGE = 18;
   const regTop = $("header").offsetHeight + 10, regBot = $("footer").offsetTop - 10, regH = regBot - regTop;
   const pxPerM = Math.min(
     (regH - CTA) / (CT + CB),            // card + CTA between the texts
@@ -521,6 +545,7 @@ $("entry").onsubmit = async e => {
   }
 };
 
+const pad3 = n => String(n).padStart(3, "0");
 function ticketEl(t){
   const el = document.createElement("div");
   el.className = "ticket"; el.style.setProperty("--c", t.color);
@@ -528,7 +553,7 @@ function ticketEl(t){
     <div class="t-eyebrow">${T("tEyebrow")}</div><div class="t-title">${T("tTitle")}</div>
     <div class="t-no"><b></b><small></small></div><div class="t-cut"></div>
     <div class="t-body"><img alt=""><dl><dt>${T("tName")}</dt><dd class="n"></dd><dt>${T("tVeg")}</dt><dd class="v"></dd></dl></div>`;
-  el.querySelector("b").textContent = t.number;
+  el.querySelector("b").textContent = pad3(t.number);
   el.querySelector("small").textContent = T("received")(t.time);
   el.querySelector("img").src = t.photo || "";
   el.querySelector(".n").textContent = t.nickname;
@@ -549,7 +574,10 @@ $("dmBtn").onclick = () => {
   // copy inside the tap, then open the booth's DM thread
   (navigator.clipboard?.writeText(T("dmText")(tickets)) ?? Promise.reject()).catch(() => {}).finally(go);
 };
-if (tickets.length) showTickets();   // after signing up, the tickets are the home screen
+// first screen: the tickets once signed up, otherwise how it works
+if (tickets.length) showTickets();
+else $("introPanel").hidden = false;
+$("startBtn").onclick = () => { $("introPanel").hidden = true; };
 
 /* ---------- loop ---------- */
 let acc = 0, prevT = performance.now();
@@ -557,7 +585,7 @@ const g2 = new THREE.Vector3();
 show(0);
 renderer.setAnimationLoop(t => {
   const dt = Math.min((t - prevT) / 1000, 0.05); prevT = t;
-  if (!formPanel.hidden || !ticketPanel.hidden) return;   // a full-screen panel covers the 3D view
+  if (!formPanel.hidden || !ticketPanel.hidden || !$("introPanel").hidden) return;   // a full-screen panel covers the 3D view
   if (!drag){
     posVel += (90 * (target - pos) - 19 * posVel) * dt;
     pos += posVel * dt;
