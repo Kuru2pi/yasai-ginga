@@ -63,7 +63,72 @@ footer p{margin:0;font-size:13px;line-height:1.7;color:var(--fg);max-width:34em;
 .flip svg{width:24px;height:24px;filter:drop-shadow(0 1px 0 rgba(255,255,255,.8))}
 .flip:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
 .load{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;letter-spacing:.1em;color:var(--muted);pointer-events:none}
-@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+/* ---- entry: call-to-action, form and ticket ---- */
+.cta{pointer-events:auto;font:inherit;font-size:15px;font-weight:700;letter-spacing:.04em;color:#fff;background:var(--fg);border:0;border-radius:999px;padding:13px 28px;cursor:pointer}
+.cta:focus-visible,.btn:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
+.ticket-link{pointer-events:auto;font:inherit;font-size:11px;letter-spacing:.06em;color:var(--fg);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin-top:6px;cursor:pointer}
+.panel{position:absolute;inset:0;z-index:5;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  padding:0 max(20px,env(safe-area-inset-right,0px)) 32px max(20px,env(safe-area-inset-left,0px));animation:rise .28s ease-out}
+@keyframes rise{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.panel-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding-block:14px 10px;background:var(--bg)}
+.panel-head h2{margin:0;font-size:18px;font-weight:700}
+.icon-btn{width:36px;height:36px;display:grid;place-items:center;padding:0;border:0;background:none;color:var(--fg);cursor:pointer;margin-left:-8px}
+.icon-btn svg{width:22px;height:22px}
+.chosen{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:14px}
+.chosen i{width:14px;height:14px;border-radius:50%;flex:none}
+.chosen small{margin-left:auto;color:var(--muted);font-size:12px}
+form{display:flex;flex-direction:column;gap:22px;margin-top:6px}
+.field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.field>span{font-size:13px;font-weight:700}
+.field>span em{font-style:normal;font-weight:400;color:var(--muted);font-size:12px;margin-left:6px}
+input[type=text],input[type=tel],textarea{font:inherit;font-size:16px;color:var(--fg);background:#fff;border:1px solid #cfcfcf;border-radius:10px;padding:12px 14px;width:100%;-webkit-user-select:text;user-select:text}
+input:focus,textarea:focus{outline:2px solid var(--fg);outline-offset:-1px;border-color:transparent}
+textarea{resize:none;min-height:72px}
+.at{position:relative}.at::before{content:"@";position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px}
+.at input{padding-left:32px}
+.at input:disabled{background:#f4f4f4;color:var(--muted)}
+.photo{position:relative;display:grid;place-items:center;aspect-ratio:1/1;width:min(100%,220px);align-self:center;border:1.5px dashed #bdbdbd;border-radius:18px;overflow:hidden;cursor:pointer;color:var(--muted);font-size:13px;text-align:center;line-height:1.6}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo input{position:absolute;width:1px;height:1px;opacity:0}
+.photo:focus-within{outline:2px solid var(--fg);outline-offset:2px}
+.photo.has{border-style:solid;border-color:var(--fg)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{position:relative}
+.chips input{position:absolute;opacity:0;inset:0}
+.chips span{display:inline-block;font-size:14px;padding:9px 16px;border:1px solid #cfcfcf;border-radius:999px;cursor:pointer}
+.chips input:checked+span{background:var(--fg);border-color:var(--fg);color:#fff}
+.chips input:focus-visible+span{outline:2px solid var(--fg);outline-offset:2px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.6;cursor:pointer}
+.check input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--fg)}
+.err{margin:0;font-size:13px;color:#c62828;min-height:1.2em}
+.btn{font:inherit;font-size:16px;font-weight:700;color:#fff;background:var(--fg);border:0;border-radius:999px;padding:15px;width:100%;cursor:pointer}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn.ghost{background:none;color:var(--fg);border:1px solid var(--line);font-weight:400}
+
+/* the ticket people screenshot and send by DM */
+.ticket{--c:#111;position:relative;margin-top:8px;border:2px solid var(--c);border-radius:18px;padding:18px;background:#fff;overflow:hidden}
+/* perforation with punched notches between the number and the details */
+.t-cut{position:relative;margin:16px -20px 0;border-top:2px dashed color-mix(in srgb,var(--c) 45%,#fff)}
+.t-cut::before,.t-cut::after{content:"";position:absolute;top:-12px;width:22px;height:22px;border-radius:50%;background:var(--bg);border:2px solid var(--c)}
+.t-cut::before{left:-12px}.t-cut::after{right:-12px}
+.t-eyebrow{font-size:11px;letter-spacing:.12em;color:var(--muted)}
+.t-title{font-size:13px;font-weight:700;margin-top:2px}
+.t-no{display:flex;align-items:baseline;justify-content:space-between;margin-top:12px}
+.t-no b{font-size:56px;line-height:1;font-weight:700;letter-spacing:.02em;color:var(--c);font-variant-numeric:tabular-nums}
+.t-no small{font-size:12px;color:var(--muted)}
+.t-body{display:flex;gap:14px;margin-top:18px;align-items:center}
+.t-body img{width:92px;height:92px;border-radius:14px;object-fit:cover;flex:none;background:#eee}
+.t-body dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:14px;min-width:0}
+.t-body dt{color:var(--muted);font-size:12px}
+.t-body dd{margin:0;font-weight:700;overflow-wrap:anywhere}
+.t-demo{position:absolute;top:14px;right:14px;font-size:10px;letter-spacing:.1em;color:#c62828;border:1px solid #c62828;border-radius:4px;padding:2px 6px}
+.steps{margin:22px 0 14px;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:700}
+.steps li{display:flex;gap:10px;align-items:center}
+.steps li b{width:22px;height:22px;border-radius:50%;background:var(--fg);color:#fff;display:grid;place-items:center;font-size:12px;flex:none}
+.note{font-size:12px;color:var(--muted);line-height:1.7;margin:10px 0 18px;text-align:center}
+.stack{display:flex;flex-direction:column;gap:10px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}.panel{animation:none}}
 </style>
 
 <div class="app" id="app">
@@ -73,10 +138,14 @@ footer p{margin:0;font-size:13px;line-height:1.7;color:var(--fg);max-width:34em;
       <h1 id="veg">トマト</h1>
       <div class="sub" id="sub">TOMATO · TM01</div>
     </div>
-    <div class="count" id="count">01 / 10</div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end">
+      <div class="count" id="count">01 / 10</div>
+      <button class="ticket-link" id="openTicket" hidden>受付票</button>
+    </div>
   </header>
   <footer id="footer">
     <p id="desc"></p>
+    <button class="cta" id="apply">この野菜で似顔絵を申し込む</button>
     <div class="dots" id="dots" role="tablist" aria-label="キャラクター"></div>
   </footer>
   <button class="flip" id="flip" aria-label="裏返す">
@@ -85,6 +154,74 @@ footer p{margin:0;font-size:13px;line-height:1.7;color:var(--fg);max-width:34em;
       <path d="M4 13a8 8 0 0 0 14.3 4.9"/><path d="M18.5 21.5v-4h-4"/>
     </svg>
   </button>
+
+  <section class="panel" id="formPanel" hidden aria-labelledby="formTitle">
+    <div class="panel-head">
+      <button class="icon-btn" id="closeForm" aria-label="もどる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2 id="formTitle">似顔絵の受付</h2>
+    </div>
+    <div class="chosen"><i id="chosenDot"></i><span id="chosenName">トマト星人</span><small>野菜を変えるときは「もどる」</small></div>
+    <form id="entry" novalidate>
+      <label class="photo" id="photoBox">
+        <input type="file" id="photo" accept="image/*">
+        <img id="photoPreview" alt="" hidden>
+        <span id="photoHint">タップして<br>顔写真を撮る・選ぶ</span>
+      </label>
+      <label class="field"><span>ニックネーム</span>
+        <input type="text" id="nick" maxlength="20" autocomplete="nickname" placeholder="例：じゅん">
+      </label>
+      <div class="field"><span>似顔絵の希望</span>
+        <div class="chips" role="radiogroup">
+          <label><input type="radio" name="wish" value="かっこよく"><span>かっこよく</span></label>
+          <label><input type="radio" name="wish" value="かわいく"><span>かわいく</span></label>
+          <label><input type="radio" name="wish" value="おもしろく"><span>おもしろく</span></label>
+          <label><input type="radio" name="wish" value="おまかせ" checked><span>おまかせ</span></label>
+        </div>
+        <textarea id="note" maxlength="100" placeholder="ひとこと（任意）例：メガネは外して描いてほしい"></textarea>
+      </div>
+      <div class="field"><span>Instagram<em>完成のお知らせを DM で送ります</em></span>
+        <div class="at"><input type="text" id="ig" maxlength="30" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="instagram_id"></div>
+        <label class="check"><input type="checkbox" id="noIg">Instagram を持っていない</label>
+      </div>
+      <label class="field"><span>電話番号</span>
+        <input type="tel" id="tel" maxlength="15" autocomplete="tel" placeholder="090-1234-5678">
+      </label>
+      <label class="check"><input type="checkbox" id="agree"><span id="agreeText">顔写真と連絡先は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。</span></label>
+      <p class="err" id="formErr" role="alert"></p>
+      <button class="btn" type="submit" id="submitBtn">この内容で受付する</button>
+    </form>
+  </section>
+
+  <section class="panel" id="ticketPanel" hidden aria-labelledby="ticketTitle">
+    <div class="panel-head">
+      <button class="icon-btn" id="closeTicket" aria-label="とじる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <h2 id="ticketTitle">受付が完了しました</h2>
+    </div>
+    <div class="ticket" id="ticket">
+      <span class="t-demo" id="tDemo" hidden>TEST</span>
+      <div class="t-eyebrow">ヤサイギンガ 星間航旅券</div>
+      <div class="t-title">似顔絵 受付票</div>
+      <div class="t-no"><b id="tNo">12</b><small id="tTime"></small></div>
+      <div class="t-cut"></div>
+      <div class="t-body">
+        <img id="tPhoto" alt="">
+        <dl>
+          <dt>なまえ</dt><dd id="tNick"></dd>
+          <dt>野菜</dt><dd id="tVeg"></dd>
+          <dt>希望</dt><dd id="tWish"></dd>
+        </dl>
+      </div>
+    </div>
+    <ol class="steps">
+      <li><b>1</b>この画面をスクショ</li>
+      <li><b>2</b>下のボタンから DM で送ってね</li>
+    </ol>
+    <div class="stack">
+      <button class="btn" id="dmBtn">Instagram で DM を送る</button>
+      <p class="note" id="dmNote">ボタンを押すと受付内容もコピーされます。<br>完成したら DM でお知らせします。番号は控えておいてね。</p>
+      <button class="btn ghost" id="backToKeys">キーホルダーにもどる</button>
+    </div>
+  </section>
 </div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
@@ -92,6 +229,12 @@ footer p{margin:0;font-size:13px;line-height:1.7;color:var(--fg);max-width:34em;
 import * as THREE from "three";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
 import {RoomEnvironment} from "three/addons/environments/RoomEnvironment.js";
+
+/* ---------- settings for the festival booth ---------- */
+const CONFIG = {
+  endpoint: "",    // Google Apps Script web-app URL (…/exec). Empty = test mode: nothing is sent
+  instagram: "",   // booth account the DM button opens, without @
+};
 
 const CHARS = window.CHARS || await (await fetch("characters.json")).json();
 const EMBED = window.EMBED || null;
@@ -298,12 +441,113 @@ function resize(){
 new ResizeObserver(resize).observe(app);
 resize();
 
+/* ---------- entry: form → Google Sheet → ticket to screenshot and DM ---------- */
+const formPanel = $("formPanel"), ticketPanel = $("ticketPanel");
+let photoData = "";
+const TICKET_KEY = "yasai-ticket";
+const loadTicket = () => { try { return JSON.parse(localStorage.getItem(TICKET_KEY) || "null"); } catch { return null; } };
+const saveTicket = t => { try { localStorage.setItem(TICKET_KEY, JSON.stringify(t)); } catch {} };
+$("openTicket").hidden = !loadTicket();
+
+$("apply").onclick = () => {
+  const c = CHARS[cur];
+  $("chosenDot").style.background = c.color;
+  $("chosenName").textContent = `${c.label}星人`;
+  $("formErr").textContent = "";
+  formPanel.hidden = false; formPanel.scrollTop = 0;
+};
+$("closeForm").onclick = () => { formPanel.hidden = true; };
+$("ig").oninput = e => { e.target.value = e.target.value.replace(/[@\s]/g, ""); };   // the field already shows "@"
+$("noIg").onchange = e => { $("ig").disabled = e.target.checked; if (e.target.checked) $("ig").value = ""; };
+
+// shrink the photo on the phone before sending: long side 1000 px, JPEG
+$("photo").onchange = async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    const url = URL.createObjectURL(f);
+    const img = new Image(); img.src = url; await img.decode();
+    const k = Math.min(1, 1000 / Math.max(img.naturalWidth, img.naturalHeight));
+    const cv = document.createElement("canvas");
+    cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
+    cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+    URL.revokeObjectURL(url);
+    photoData = cv.toDataURL("image/jpeg", 0.85);
+    $("photoPreview").src = photoData; $("photoPreview").hidden = false;
+    $("photoHint").hidden = true; $("photoBox").classList.add("has");
+  } catch {
+    $("formErr").textContent = "写真を読み込めませんでした。別の写真で試してください。";
+  }
+};
+
+$("entry").onsubmit = async e => {
+  e.preventDefault();
+  const err = m => { $("formErr").textContent = m; };
+  const nick = $("nick").value.trim(), ig = $("ig").value.trim().replace(/^@/, ""), noIg = $("noIg").checked;
+  const tel = $("tel").value.trim(), digits = tel.replace(/\D/g, "");
+  if (!photoData) return err("顔写真を撮るか選んでください。");
+  if (!nick) return err("ニックネームを入れてください。");
+  if (!noIg && !/^[A-Za-z0-9._]{1,30}$/.test(ig)) return err("Instagram の ID を確認してください（持っていない人はチェックを入れてください）。");
+  if (digits.length < 10 || digits.length > 11) return err("電話番号を確認してください（ハイフンはあってもなくても大丈夫です）。");
+  if (!$("agree").checked) return err("下の内容に同意のチェックを入れてください。");
+  err("");
+  const c = CHARS[cur];
+  const entry = {vegetable: c.label, nickname: nick, wish: document.querySelector("input[name=wish]:checked").value,
+                 note: $("note").value.trim(), instagram: noIg ? "" : ig, phone: tel};
+  const btn = $("submitBtn"); btn.disabled = true; btn.textContent = "送信中…";
+  try {
+    let number, time, demo = false;
+    if (CONFIG.endpoint){
+      // text/plain keeps this a "simple" request, which Apps Script accepts without a CORS preflight
+      const res = await fetch(CONFIG.endpoint, {method: "POST", body: JSON.stringify({...entry, photo: photoData})});
+      const r = await res.json();
+      if (!r.ok) throw new Error(r.error || "failed");
+      ({number, time} = r);
+    } else {
+      demo = true; number = Math.floor(Math.random() * 90) + 10;
+      time = new Date().toLocaleString("ja-JP", {month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"});
+    }
+    const ticket = {...entry, number, time, demo, color: c.color, photo: photoData};
+    saveTicket(ticket);
+    $("openTicket").hidden = false;
+    $("entry").reset(); $("ig").disabled = false;
+    photoData = ""; $("photoPreview").hidden = true; $("photoHint").hidden = false; $("photoBox").classList.remove("has");
+    formPanel.hidden = true;
+    showTicket(ticket);
+  } catch {
+    err("送信できませんでした。電波のよい場所でもう一度お試しいただくか、スタッフに声をかけてください。");
+  } finally {
+    btn.disabled = false; btn.textContent = "この内容で受付する";
+  }
+};
+
+function showTicket(t){
+  $("ticket").style.setProperty("--c", t.color);
+  $("tNo").textContent = t.number; $("tTime").textContent = `${t.time} 受付`;
+  $("tPhoto").src = t.photo || ""; $("tNick").textContent = t.nickname;
+  $("tVeg").textContent = `${t.vegetable}星人`; $("tWish").textContent = t.wish;
+  $("tDemo").hidden = !t.demo;
+  $("dmBtn").disabled = !CONFIG.instagram;
+  if (!CONFIG.instagram) $("dmNote").textContent = "（DM の送り先がまだ設定されていません）";
+  ticketPanel.hidden = false; ticketPanel.scrollTop = 0;
+}
+$("openTicket").onclick = () => { const t = loadTicket(); if (t) showTicket(t); };
+$("closeTicket").onclick = $("backToKeys").onclick = () => { ticketPanel.hidden = true; };
+$("dmBtn").onclick = () => {
+  const t = loadTicket(); if (!t || !CONFIG.instagram) return;
+  const text = `【ヤサイギンガ 似顔絵受付】\nNo.${t.number}\n${t.nickname}／${t.vegetable}星人／${t.wish}`;
+  const go = () => { location.href = `https://ig.me/m/${CONFIG.instagram}`; };
+  // copy inside the tap, then open the booth's DM thread
+  (navigator.clipboard?.writeText(text) ?? Promise.reject()).catch(() => {}).finally(go);
+};
+
 /* ---------- loop ---------- */
 let acc = 0, prevT = performance.now();
 const g2 = new THREE.Vector3();
 show(0);
 renderer.setAnimationLoop(t => {
   const dt = Math.min((t - prevT) / 1000, 0.05); prevT = t;
+  if (!formPanel.hidden || !ticketPanel.hidden) return;   // a full-screen panel covers the 3D view
   if (!drag){
     posVel += (90 * (target - pos) - 19 * posVel) * dt;
     pos += posVel * dt;
