@@ -68,7 +68,9 @@ footer p{margin:0;font-size:13px;line-height:1.6;color:var(--fg);max-width:34em;
 .load{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;letter-spacing:.1em;color:var(--muted);pointer-events:none}
 
 /* ---- entry: call-to-action, form and ticket ---- */
-.cta{position:absolute;left:50%;top:80%;translate:-50% 0;white-space:nowrap;transition:opacity .2s;font:inherit;font-size:15px;font-weight:700;letter-spacing:.04em;border-radius:999px;padding:14px 30px}
+.cta-row{position:absolute;left:50%;top:80%;translate:-50% 0;display:flex;gap:10px;transition:opacity .2s}
+.cta{white-space:nowrap;font:inherit;font-size:15px;font-weight:700;letter-spacing:.04em;border-radius:999px;padding:14px 30px}
+.cta.ghost{font-weight:400;color:#444;padding:14px 20px}
 .title-row{display:flex;align-items:center;gap:10px}
 .back{pointer-events:auto;width:38px;height:38px;flex:none;display:grid;place-items:center;padding:0;border-radius:50%}
 .back svg{width:20px;height:20px;margin-left:-2px}
@@ -166,7 +168,10 @@ textarea{resize:none;min-height:72px}
     <div class="dots" id="dots" role="tablist"></div>
   </footer>
   <div class="sample glass" id="sample" aria-hidden="true">SAMPLE</div>
-  <button class="cta glass" id="apply" data-i18n="apply">この野菜にする</button>
+  <div class="cta-row" id="ctaRow">
+    <button class="cta glass ghost" id="omakase" data-i18n="omakase">おまかせ</button>
+    <button class="cta glass" id="apply" data-i18n="apply">この野菜にする</button>
+  </div>
   <button class="flip glass" id="flip" data-i18n-label="flip" aria-label="裏返す">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M20 11a8 8 0 0 0-14.3-4.9"/><path d="M5.5 2.5v4h4"/>
@@ -252,7 +257,7 @@ CHARS.forEach(c => { const [num, en] = c.id.split(" / ")[0].split("."); c.num = 
 /* ---------- UI text (kept in one place so wording is easy to change) ---------- */
 const I18N = {
   ja: {
-    apply: "この野菜にする", flip: "裏返す", back: "もどる", close: "とじる", toTickets: "受付票にもどる",
+    apply: "この野菜にする", omakase: "おまかせ", flip: "裏返す", back: "もどる", close: "とじる", toTickets: "受付票にもどる",
     formTitle: "似顔絵の受付", photoHint: "タップして<br>顔写真を撮る・選ぶ", nick: "ニックネーム", nickNote: "ひらがな・カタカナ・英数字", nickPh: "例：じゅん / JUN",
     tel: "電話番号", telNote: "任意（入れない人は、受付票を必ず DM で送ってね）",
     agree: "顔写真と電話番号は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。",
@@ -261,12 +266,12 @@ const I18N = {
     step1: "この画面をスクショ", step2: "下のボタンから DM で送ってね", dm: "Instagram で DM を送る",
     dmNote: "ボタンを押すと受付内容もコピーされます。<br>完成したら DM でお知らせします。番号は控えておいてね。",
     dmUnset: "（DM の送り先がまだ設定されていません）", backToKeys: "キーホルダーにもどる",
-    alien: l => `${l}星人`, received: t => `${t} 受付`,
+    alien: l => l === OMAKASE.label ? l : `${l}星人`, received: t => `${t} 受付`,
     errPhoto: "顔写真を撮るか選んでください。", errPhotoRead: "写真を読み込めませんでした。別の写真で試してください。",
     errNick: "ニックネームを入れてください。", errNickChars: "ニックネームは、ひらがな・カタカナ・英数字で入れてください（漢字・記号・スペースは使えません）。", errTel: "電話番号を確認してください（ハイフンはあってもなくても大丈夫です）。",
     errAgree: "下の内容に同意のチェックを入れてください。",
     errSend: "送信できませんでした。電波のよい場所でもう一度お試しいただくか、スタッフに声をかけてください。",
-    dmText: ts => "【ヤサイギンガ 似顔絵受付】\n" + ts.map(t => `No.${String(t.number).padStart(3, "0")}　${t.nickname}／${t.vegJa}星人`).join("\n"),
+    dmText: ts => "【ヤサイギンガ 似顔絵受付】\n" + ts.map(t => `No.${String(t.number).padStart(3, "0")}　${t.nickname}／${T("alien")(t.vegJa)}`).join("\n"),
   },
 };
 const T = k => I18N.ja[k];
@@ -461,7 +466,7 @@ function resize(){
   zoomMin = Math.min(1, 0.0306 / halfW);   // closest zoom: the card spans the full width
   zoom = THREE.MathUtils.clamp(zoom, zoomMin, 1); zoomTarget = THREE.MathUtils.clamp(zoomTarget, zoomMin, 1);
   // CTA just under the card; flip button on the card's top-right corner (both fixed at the resting pose)
-  $("apply").style.top = (cardZero + CB * pxPerM + 14).toFixed(1) + "px";
+  $("ctaRow").style.top = (cardZero + CB * pxPerM + 14).toFixed(1) + "px";
   // SAMPLE tag sits on the chain just above the card's hanging tab
   $("sample").style.top = (cardZero - (CT + 0.007) * pxPerM).toFixed(1) + "px";
   $("flip").style.left = (w / 2 + 0.030 * pxPerM - 4).toFixed(1) + "px";
@@ -488,13 +493,18 @@ const saveTickets = ts => { try { localStorage.setItem(TICKETS_KEY, JSON.stringi
 let tickets = loadTickets();
 $("openTicket").hidden = !tickets.length;
 
-$("apply").onclick = () => {
-  const c = CHARS[cur];
-  $("chosenDot").style.background = c.color;
+// "おまかせ" leaves the vegetable to the artist
+const OMAKASE = {label: "おまかせ", color: "#111"};
+let chosen = null;
+$("apply").onclick = () => openForm(CHARS[cur]);
+$("omakase").onclick = () => openForm(OMAKASE);
+function openForm(c){
+  chosen = c;
+  $("chosenDot").style.background = c === OMAKASE ? `conic-gradient(${CHARS.map(x => x.color).join(",")},${CHARS[0].color})` : c.color;
   $("chosenName").textContent = T("alien")(c.label);
   $("formErr").textContent = "";
   formPanel.hidden = false; formPanel.scrollTop = 0;
-};
+}
 $("closeForm").onclick = () => { formPanel.hidden = true; };
 
 // kept uncropped in the visitor's own aspect ratio, long side 1200 px, JPEG
@@ -530,7 +540,7 @@ $("entry").onsubmit = async e => {
   if (tel && (digits.length < 10 || digits.length > 13)) return err("errTel");
   if (!$("agree").checked) return err("errAgree");
   $("formErr").textContent = "";
-  const c = CHARS[cur];
+  const c = chosen;
   // the sheet is for the booth staff, so it always gets the Japanese name; "なし" = DM only
   const entry = {vegetable: c.label, nickname: nick, instagram: "", phone: tel || "なし"};
   const btn = $("submitBtn"); btn.disabled = true; btn.textContent = T("sending");
@@ -643,8 +653,8 @@ renderer.setAnimationLoop(t => {
   const r = rigs[cur], f = zoomMin < 1 ? (1 - zoom) / (1 - zoomMin) : 0;
   const ui = String(THREE.MathUtils.clamp(1 - f * 2.5, 0, 1));   // overlay text steps aside while zoomed
   if ($("header").style.opacity !== ui){
-    for (const id of ["header", "footer", "flip", "apply", "sample"]) $(id).style.opacity = ui;
-    $("flip").style.pointerEvents = $("apply").style.pointerEvents = +ui < 0.5 ? "none" : "";
+    for (const id of ["header", "footer", "flip", "ctaRow", "sample"]) $(id).style.opacity = ui;
+    $("flip").style.pointerEvents = $("ctaRow").style.pointerEvents = +ui < 0.5 ? "none" : "";
   }
   const tx = f * ((cur - pos) * spacing + (r ? r.center.x : 0)), ty = camY0 * (1 - f) + (r ? r.center.y * f : 0);
   camera.position.set(tx, ty, baseDist * zoom); camera.lookAt(tx, ty, 0);
