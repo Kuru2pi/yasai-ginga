@@ -93,7 +93,8 @@ textarea{resize:none;min-height:72px}
 .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .photo input{position:absolute;width:1px;height:1px;opacity:0}
 .photo:focus-within{outline:2px solid var(--fg);outline-offset:2px}
-.photo.has{border-style:solid;border-color:var(--fg)}
+.photo.has{border-style:solid;border-color:var(--fg);aspect-ratio:auto;background:#f4f4f4}
+.photo.has img{position:static;display:block;height:auto;max-height:62vh;object-fit:contain}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chips label{position:relative}
 .chips input{position:absolute;opacity:0;inset:0}
@@ -123,7 +124,7 @@ textarea{resize:none;min-height:72px}
 .t-who{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:16px;min-width:0}
 .t-who dt{color:var(--muted);font-size:12px;align-self:center}
 .t-who dd{margin:0;font-weight:700;overflow-wrap:anywhere}
-.t-photo{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;margin-top:16px;background:#eee}
+.t-photo{display:block;width:auto;max-width:100%;height:auto;max-height:44vh;margin-left:auto;margin-right:auto;border-radius:12px;margin-top:16px;background:#eee}
 .t-demo{display:inline-block;margin-left:6px;font-size:10px;font-weight:400;letter-spacing:.1em;color:#c62828;border:1px solid #c62828;border-radius:4px;padding:1px 5px;vertical-align:1px}
 /* sized so the 15-character line never wraps on a phone */
 .sample{position:absolute;left:50%;top:30%;translate:-50% -50%;pointer-events:none;cursor:default;font-family:var(--dot);font-size:13px;letter-spacing:.18em;padding:5px 12px 5px 14px;border-radius:999px;transition:opacity .2s}
@@ -496,7 +497,7 @@ $("apply").onclick = () => {
 };
 $("closeForm").onclick = () => { formPanel.hidden = true; };
 
-// landscape 4:3 crop on the phone (biased upward, where faces usually are), long side 1200 px, JPEG
+// kept uncropped in the visitor's own aspect ratio, long side 1200 px, JPEG
 $("photo").onchange = async e => {
   const f = e.target.files[0];
   if (!f) return;
@@ -504,12 +505,10 @@ $("photo").onchange = async e => {
     const url = URL.createObjectURL(f);
     const img = new Image(); img.src = url; await img.decode();
     const W = img.naturalWidth, Hh = img.naturalHeight;
-    let sw = W, sh = W * 3 / 4;
-    if (sh > Hh){ sh = Hh; sw = Hh * 4 / 3; }
-    const sx = (W - sw) / 2, sy = (Hh - sh) * 0.35;
+    const k = Math.min(1, 1200 / Math.max(W, Hh));
     const cv = document.createElement("canvas");
-    cv.width = Math.round(Math.min(1200, sw)); cv.height = Math.round(cv.width * 3 / 4);
-    cv.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+    cv.width = Math.round(W * k); cv.height = Math.round(Hh * k);
+    cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
     URL.revokeObjectURL(url);
     photoData = cv.toDataURL("image/jpeg", 0.85);
     $("photoPreview").src = photoData; $("photoPreview").hidden = false;
