@@ -211,6 +211,7 @@ textarea{resize:none;min-height:72px}
         <input type="tel" id="tel" maxlength="15" autocomplete="tel" placeholder="090-1234-5678">
       </label>
       <label class="check"><input type="checkbox" id="agree"><span data-i18n="agree">顔写真と電話番号は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。</span></label>
+      <label class="check"><input type="checkbox" id="pickup"><span data-i18n="pickup">閉会時間までに受け取りに来られなかった場合、似顔絵はお渡しできません。</span></label>
       <p class="err" id="formErr" role="alert"></p>
       <button class="btn glass" type="submit" id="submitBtn" data-i18n="submit">この内容で受付する</button>
     </form>
@@ -261,6 +262,8 @@ const I18N = {
     formTitle: "似顔絵の受付", photoHint: "タップして<br>顔写真を撮る・選ぶ", nick: "ニックネーム", nickNote: "ひらがな・カタカナ・英数字", nickPh: "例：じゅん / JUN",
     tel: "電話番号", telNote: "任意（入れない人は、受付票を必ず DM で送ってね）",
     agree: "顔写真と電話番号は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。",
+    pickup: "閉会時間までに受け取りに来られなかった場合、似顔絵はお渡しできません。",
+    errPickup: "受け取りについての内容を確認して、チェックを入れてください。",
     submit: "この内容で受付する", sending: "送信中…",
     ticketTitle: "受付票", showStaff: "この画面を店員に見せてください", addMore: "＋ 似顔絵を追加する", tEyebrow: "ヤサイギンガ 星間航旅券", tTitle: "似顔絵 受付票", tName: "なまえ", tVeg: "野菜",
     step1: "この画面をスクショ", step2: "下のボタンから DM で送ってね", dm: "Instagram で DM を送る",
@@ -539,6 +542,7 @@ $("entry").onsubmit = async e => {
   if (!NICK_OK.test(nick)) return err("errNickChars");
   if (tel && (digits.length < 10 || digits.length > 13)) return err("errTel");
   if (!$("agree").checked) return err("errAgree");
+  if (!$("pickup").checked) return err("errPickup");
   $("formErr").textContent = "";
   const c = chosen;
   // the sheet is for the booth staff, so it always gets the Japanese name; "なし" = DM only
