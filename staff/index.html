@@ -148,6 +148,7 @@ const cv = $("cv"), ctx = cv.getContext("2d");
 let key = localStorage.getItem("yasai-staff-key") || "";
 let entries = [], filter = "todo", current = null;   // current = entry from the sheet, or null for 手入力
 let veg = null, art = null, view = {s: 1, dx: 0, dy: 0};
+let face = null, faceReq = 0;   // the visitor's photo, shown in the window until the portrait goes in
 // colour behind the portrait (shows through transparent parts of the drawing)
 const BG_COLORS = ["#ffffff", "#cfe8f7", "#fff27a", "#ffd6e0", "#d4f2dc", "#e6dcf5", "#fff1d6", "#222222"];
 let bg = localStorage.getItem("yasai-bg") || "#ffffff";
@@ -216,6 +217,7 @@ function openEntry(e){
   $("who").hidden = !e;
   if (e) $("who").textContent = `No.${String(e.number).padStart(3, "0")}　${e.vegetable}`;
   art = null; view = {s: 1, dx: 0, dy: 0}; $("zoom").value = 1;
+  face = null; if (e) loadFace(e);
   const c = e && CHARS.find(c => c.label === e.vegetable);
   setVeg(c || null);   // おまかせ: staff picks the vegetable
   renderList();
@@ -230,6 +232,15 @@ async function setVeg(c){
   draw();
 }
 $("nick").oninput = () => draw();
+async function loadFace(e){
+  const req = ++faceReq;
+  try {
+    const r = await (await fetch(`${ENDPOINT}?action=photo&number=${e.number}&key=${encodeURIComponent(key)}`)).json();
+    if (!r.ok || !r.photo) return;
+    const im = await img(r.photo);
+    if (req === faceReq){ face = im; draw(); }
+  } catch {}
+}
 
 function coverScale(){ return Math.max((WIN.w + 8) / art.width, (WIN.h + 8) / art.height); }   // edges tuck under the frame
 function draw(){
@@ -241,12 +252,22 @@ function draw(){
     ctx.fillStyle = bg; ctx.fillRect(WIN.x - 4, WIN.y - 4, WIN.w + 8, WIN.h + 8);
     ctx.drawImage(art, WIN.x + (WIN.w - w) / 2 + view.dx, WIN.y + (WIN.h - h) / 2 + view.dy, w, h);
     ctx.restore();
+  } else if (face){
+    // reference only: printing stays locked until the portrait is in
+    const k = Math.max(WIN.w / face.width, WIN.h / face.height), w = face.width * k, h = face.height * k;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(WIN.x, WIN.y, WIN.w, WIN.h); ctx.clip();
+    ctx.drawImage(face, WIN.x + (WIN.w - w) / 2, WIN.y + (WIN.h - h) * 0.35, w, h);
+    ctx.fillStyle = "rgba(0,0,0,.55)"; ctx.fillRect(WIN.x, WIN.y + WIN.h - 70, WIN.w, 70);
+    ctx.fillStyle = "#fff"; ctx.font = `40px -apple-system,sans-serif`; ctx.textAlign = "center";
+    ctx.fillText("顔写真（参考）", WIN.x + WIN.w / 2, WIN.y + WIN.h - 22); ctx.textAlign = "left";
+    ctx.restore();
   } else {
     ctx.fillStyle = "#f1f1f1"; ctx.fillRect(WIN.x, WIN.y, WIN.w, WIN.h);
     ctx.fillStyle = "#aaa"; ctx.font = `48px -apple-system,sans-serif`; ctx.textAlign = "center";
     ctx.fillText("似顔絵を選んでください", WIN.x + WIN.w / 2, WIN.y + WIN.h / 2 + 16); ctx.textAlign = "left";
   }
-  if (veg){
+  if (veg && fronts[veg.slug]){   // the template may still be loading
     ctx.drawImage(fronts[veg.slug], 0, 0);
     const name = $("nick").value.trim();
     if (name){

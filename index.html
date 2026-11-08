@@ -106,6 +106,12 @@ textarea{resize:none;min-height:72px}
 .check{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.6;cursor:pointer}
 .check input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--fg)}
 .err{margin:0;font-size:13px;color:#c62828;min-height:1.2em}
+.preview{position:static;display:block;width:min(100%,340px);height:auto;margin:6px auto 4px;touch-action:auto;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.12)}
+.confirm-sum{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:14px 4px;font-size:14px}
+.confirm-sum dt{color:var(--muted)}
+.confirm-sum dd{margin:0;font-weight:700}
+.confirm-q{text-align:center;font-size:17px;font-weight:700;margin:16px 0 12px}
+#confirmPanel .btn+.btn{margin-top:10px}
 .btn{font:inherit;font-size:16px;font-weight:700;border-radius:999px;padding:15px;width:100%}
 .btn[disabled]{opacity:.45;cursor:default}
 .btn.ghost{font-weight:400;color:#444}
@@ -213,8 +219,26 @@ textarea{resize:none;min-height:72px}
       <label class="check"><input type="checkbox" id="agree"><span data-i18n="agree">顔写真と電話番号は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。</span></label>
       <label class="check"><input type="checkbox" id="pickup"><span data-i18n="pickup">閉会時間までに受け取りに来られなかった場合、似顔絵はお渡しできません。</span></label>
       <p class="err" id="formErr" role="alert"></p>
-      <button class="btn glass" type="submit" id="submitBtn" data-i18n="submit">この内容で受付する</button>
+      <button class="btn glass" type="submit" id="submitBtn" data-i18n="next">仕上がりを確認する</button>
     </form>
+  </section>
+
+  <section class="panel" id="confirmPanel" hidden aria-labelledby="confirmTitle">
+    <div class="panel-head">
+      <button class="icon-btn" id="closeConfirm" data-i18n-label="back" aria-label="もどる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2 id="confirmTitle" data-i18n="confirmTitle">仕上がりイメージ</h2>
+    </div>
+    <canvas class="preview" id="previewCv" width="1219" height="1700"></canvas>
+    <p class="note" data-i18n="previewNote">写真の部分に、似顔絵が入ります。</p>
+    <dl class="confirm-sum">
+      <dt data-i18n="tName">なまえ</dt><dd id="sumName"></dd>
+      <dt data-i18n="tVeg">野菜</dt><dd id="sumVeg"></dd>
+      <dt data-i18n="tel">電話番号</dt><dd id="sumTel"></dd>
+    </dl>
+    <p class="confirm-q" data-i18n="confirmQ">この内容でよろしいですか？</p>
+    <p class="err" id="confirmErr" role="alert"></p>
+    <button class="btn glass" id="confirmBtn" data-i18n="submit">この内容で受付する</button>
+    <button class="btn glass ghost" id="fixBtn" data-i18n="fix">修正する</button>
   </section>
 
   <section class="panel" id="ticketPanel" hidden aria-labelledby="ticketTitle">
@@ -264,7 +288,9 @@ const I18N = {
     agree: "顔写真と電話番号は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。",
     pickup: "閉会時間までに受け取りに来られなかった場合、似顔絵はお渡しできません。",
     errPickup: "受け取りについての内容を確認して、チェックを入れてください。",
-    submit: "この内容で受付する", sending: "送信中…",
+    submit: "この内容で受付する", sending: "送信中…", next: "仕上がりを確認する",
+    confirmTitle: "仕上がりイメージ", previewNote: "写真の部分に、似顔絵が入ります。", confirmQ: "この内容でよろしいですか？", fix: "修正する",
+    omakaseNote: "野菜はおまかせ（どの星人になるかはお楽しみ）", noTel: "なし（DM で連絡）",
     ticketTitle: "受付票", showStaff: "この画面を店員に見せてください", addMore: "＋ 似顔絵を追加する", tEyebrow: "ヤサイギンガ 星間航旅券", tTitle: "似顔絵 受付票", tName: "なまえ", tVeg: "野菜",
     step1: "この画面をスクショ", step2: "下のボタンから DM で送ってね", dm: "Instagram で DM を送る",
     dmNote: "ボタンを押すと受付内容もコピーされます。<br>完成したら DM でお知らせします。番号は控えておいてね。",
@@ -544,10 +570,55 @@ $("entry").onsubmit = async e => {
   if (!$("agree").checked) return err("errAgree");
   if (!$("pickup").checked) return err("errPickup");
   $("formErr").textContent = "";
+  openConfirm(nick, tel);
+};
+
+/* ---------- "this is roughly how it will look": the chosen card with the visitor's photo in the window ---------- */
+const WIN = {x: 118, y: 331, w: 988, h: 638}, NAME = {x: 345, base: 230, maxW: 590, size: 60};   // on staff/front/<slug>.png
+const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+let pendingEntry = null;
+async function openConfirm(nick, tel){
+  pendingEntry = {nick, tel};
+  $("sumName").textContent = nick;
+  $("sumVeg").textContent = T("alien")(chosen.label);
+  $("sumTel").textContent = tel || T("noTel");
+  $("confirmErr").textContent = "";
+  $("confirmPanel").hidden = false; $("confirmPanel").scrollTop = 0;
+  const cv = $("previewCv"), x = cv.getContext("2d");
+  x.clearRect(0, 0, cv.width, cv.height);
+  const photo = await loadImg(photoData);
+  const k = Math.max(WIN.w / photo.width, WIN.h / photo.height), w = photo.width * k, h = photo.height * k;
+  x.save(); x.beginPath(); x.rect(WIN.x - 4, WIN.y - 4, WIN.w + 8, WIN.h + 8); x.clip();
+  x.drawImage(photo, WIN.x + (WIN.w - w) / 2, WIN.y + (WIN.h - h) * 0.35, w, h);
+  x.restore();
+  if (chosen === OMAKASE){
+    // no card yet: the artist picks the vegetable
+    x.fillStyle = "#fff"; x.fillRect(0, 0, cv.width, WIN.y - 4); x.fillRect(0, WIN.y + WIN.h + 4, cv.width, cv.height);
+    x.fillStyle = "#111"; x.font = `64px ${getComputedStyle(document.body).fontFamily}`; x.textAlign = "center";
+    x.fillText("おまかせ", cv.width / 2, 200);
+    x.font = `44px ${getComputedStyle(document.body).fontFamily}`;
+    x.fillText(T("omakaseNote"), cv.width / 2, WIN.y + WIN.h + 140); x.textAlign = "left";
+    return;
+  }
+  try {
+    const front = await loadImg(`staff/front/${chosen.slug}.png`);
+    await document.fonts.load(`${NAME.size}px "DotGothic16"`, nick);
+    x.drawImage(front, 0, 0);
+    let size = NAME.size; x.font = `${size}px "DotGothic16"`;
+    const tw = x.measureText(nick).width;
+    if (tw > NAME.maxW){ size *= NAME.maxW / tw; x.font = `${size}px "DotGothic16"`; }
+    x.fillStyle = chosen.ink; x.fillText(nick, NAME.x, NAME.base);
+  } catch {}
+}
+$("closeConfirm").onclick = $("fixBtn").onclick = () => { $("confirmPanel").hidden = true; };
+$("confirmBtn").onclick = () => pendingEntry && send(pendingEntry);
+
+async function send({nick, tel}){
+  const err = k => { $("confirmErr").textContent = T(k); };
   const c = chosen;
   // the sheet is for the booth staff, so it always gets the Japanese name; "なし" = DM only
   const entry = {vegetable: c.label, nickname: nick, instagram: "", phone: tel || "なし"};
-  const btn = $("submitBtn"); btn.disabled = true; btn.textContent = T("sending");
+  const btn = $("confirmBtn"); btn.disabled = true; btn.textContent = T("sending");
   try {
     let number, time, demo = false;
     if (CONFIG.endpoint){
@@ -565,14 +636,14 @@ $("entry").onsubmit = async e => {
     $("openTicket").hidden = false;
     $("entry").reset();
     photoData = ""; $("photoPreview").hidden = true; $("photoHint").hidden = false; $("photoBox").classList.remove("has");
-    formPanel.hidden = true;
+    formPanel.hidden = true; $("confirmPanel").hidden = true; pendingEntry = null;
     showTickets();
   } catch {
     err("errSend");
   } finally {
     btn.disabled = false; btn.textContent = T("submit");
   }
-};
+}
 
 const pad3 = n => String(n).padStart(3, "0");
 function ticketEl(t){
