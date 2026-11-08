@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>似顔絵 確認</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+:root{--fg:#111;--muted:#888;--line:#e4e4e4;--soft:#f5f5f5;color-scheme:light}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:#fff;color:var(--fg);font:15px -apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer}
+/* read-only page for the drawing iPad, usually in Slide Over next to Procreate */
+.app{display:flex;flex-direction:column;height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;align-items:center;gap:8px;padding:14px 14px 8px}
+h1{font-size:17px;margin:0;flex:1}
+.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:13px}
+.pill.on{background:var(--fg);color:#fff;border-color:var(--fg)}
+.list{display:flex;gap:6px;overflow-x:auto;padding:4px 14px 10px;-webkit-overflow-scrolling:touch;flex:none}
+.num{flex:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:6px 10px;text-align:center;min-width:64px}
+.num b{display:block;font-family:"DotGothic16",monospace;font-weight:400;font-size:20px;line-height:1.1}
+.num small{display:block;font-size:11px;color:var(--muted);max-width:7em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.num.sel{background:var(--fg);color:#fff;border-color:var(--fg)}
+.num.sel small{color:#ddd}
+.detail{flex:1;overflow:auto;padding:4px 14px 20px}
+.face{display:block;width:100%;max-height:52dvh;object-fit:contain;border-radius:14px;background:var(--soft)}
+.who{display:flex;align-items:baseline;gap:12px;margin:12px 2px 10px;flex-wrap:wrap}
+.who b{font-family:"DotGothic16",monospace;font-weight:400;font-size:28px}
+.who .n{font-size:20px;font-weight:700}
+.who .v{display:inline-flex;align-items:center;gap:6px;font-size:15px}
+.who .v i{width:12px;height:12px;border-radius:50%}
+.card{display:block;width:min(100%,320px);height:auto;margin:6px auto 0;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.12)}
+.msg{color:var(--muted);font-size:13px;padding:14px;line-height:1.6}
+.keybox{position:fixed;inset:0;background:rgba(0,0,0,.35);display:grid;place-items:center}
+.keybox form{background:#fff;border-radius:18px;padding:22px;width:min(90vw,340px);display:flex;flex-direction:column;gap:12px}
+.keybox input{font:inherit;font-size:17px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.keybox button{border:0;border-radius:12px;padding:12px;background:var(--fg);color:#fff;font-weight:700}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>似顔絵 確認</h1>
+    <button class="pill on" data-f="todo">未完成</button>
+    <button class="pill" data-f="all">すべて</button>
+  </header>
+  <div class="list" id="list"></div>
+  <div class="detail">
+    <p class="msg" id="msg">読み込み中…</p>
+    <div id="detail" hidden>
+      <img class="face" id="face" alt="">
+      <div class="who"><b id="dNum"></b><span class="n" id="dName"></span><span class="v"><i id="dDot"></i><span id="dVeg"></span></span></div>
+      <canvas class="card" id="card" width="1219" height="1700"></canvas>
+    </div>
+  </div>
+</div>
+<div class="keybox" id="keybox" hidden>
+  <form id="keyForm"><b>合言葉を入れてください</b><input type="password" id="keyIn" autocomplete="off" autocapitalize="off"><button type="submit">OK</button></form>
+</div>
+
+<script type="module">
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbz8CCTtf5OtnjJeY3oeSDjKSe39hJZAbXC58oG2UL_0sLvGY9Tdiv4_-eq38eJWQqUnbA/exec";
+const WIN = {x: 118, y: 331, w: 988, h: 638}, NAME = {x: 345, base: 230, maxW: 590, size: 60};   // on front/<slug>.png
+
+const $ = id => document.getElementById(id);
+const CHARS = await (await fetch("../characters.json")).json();
+const img = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+let key = localStorage.getItem("yasai-staff-key") || "";
+let entries = [], filter = "todo", current = null, req = 0;
+
+async function loadList(){
+  if (!key) return askKey();
+  try {
+    const r = await (await fetch(`${ENDPOINT}?action=list&key=${encodeURIComponent(key)}`)).json();
+    if (!r.ok && r.error === "bad key"){ key = ""; localStorage.removeItem("yasai-staff-key"); return askKey(); }
+    entries = (r.list || []).sort((a, b) => b.number - a.number);   // newest first: the next one to draw is usually at the front
+    render();
+  } catch { $("msg").hidden = false; $("msg").textContent = "読み込めませんでした。Wi-Fi を確認してください。"; }
+}
+function render(){
+  const shown = entries.filter(e => filter === "all" || !/完成|受け渡し済/.test(e.status));
+  $("list").replaceChildren(...shown.map(e => {
+    const b = document.createElement("button");
+    b.className = "num" + (current && current.number === e.number ? " sel" : "");
+    b.innerHTML = "<b></b><small></small>";
+    b.querySelector("b").textContent = String(e.number).padStart(3, "0");
+    b.querySelector("small").textContent = e.nickname;
+    b.onclick = () => open(e);
+    return b;
+  }));
+  if (!current){ $("msg").hidden = false; $("msg").textContent = shown.length ? "番号をタップすると、顔写真と野菜が出ます。" : "まだ受付がありません。"; }
+}
+async function open(e){
+  current = e; render();
+  const r = ++req, c = CHARS.find(c => c.label === e.vegetable);
+  $("msg").hidden = true; $("detail").hidden = false;
+  $("dNum").textContent = String(e.number).padStart(3, "0");
+  $("dName").textContent = e.nickname;
+  $("dVeg").textContent = c ? `${c.label}星人` : e.vegetable;
+  $("dDot").style.background = c ? c.color : "#111";
+  $("face").removeAttribute("src");
+  let face = null;
+  try {
+    const p = await (await fetch(`${ENDPOINT}?action=photo&number=${e.number}&key=${encodeURIComponent(key)}`)).json();
+    if (p.ok && r === req){ $("face").src = p.photo; face = await img(p.photo); }
+  } catch {}
+  if (r !== req) return;
+  // the card as it will be printed, with the photo standing in for the portrait
+  const cv = $("card"), x = cv.getContext("2d");
+  x.clearRect(0, 0, cv.width, cv.height);
+  $("card").hidden = !c;
+  if (!c) return;
+  if (face){
+    const k = Math.max(WIN.w / face.width, WIN.h / face.height), w = face.width * k, h = face.height * k;
+    x.save(); x.beginPath(); x.rect(WIN.x, WIN.y, WIN.w, WIN.h); x.clip();
+    x.drawImage(face, WIN.x + (WIN.w - w) / 2, WIN.y + (WIN.h - h) * 0.35, w, h); x.restore();
+  }
+  x.drawImage(await img(`front/${c.slug}.png`), 0, 0);
+  await document.fonts.load(`${NAME.size}px "DotGothic16"`, e.nickname);
+  let size = NAME.size; x.font = `${size}px "DotGothic16"`;
+  const tw = x.measureText(e.nickname).width;
+  if (tw > NAME.maxW){ size *= NAME.maxW / tw; x.font = `${size}px "DotGothic16"`; }
+  x.fillStyle = c.ink; x.fillText(e.nickname, NAME.x, NAME.base);
+}
+function askKey(){ $("keybox").hidden = false; $("keyIn").focus(); }
+$("keyForm").onsubmit = e => {
+  e.preventDefault(); key = $("keyIn").value.trim(); if (!key) return;
+  localStorage.setItem("yasai-staff-key", key); $("keybox").hidden = true; loadList();
+};
+document.querySelectorAll("[data-f]").forEach(b => b.onclick = () => {
+  filter = b.dataset.f;
+  document.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b));
+  render();
+});
+setInterval(() => { if (key && document.visibilityState === "visible") loadList(); }, 15000);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") loadList(); });
+loadList();
+</script>
+</body>
+</html>

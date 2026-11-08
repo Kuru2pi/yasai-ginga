@@ -297,7 +297,7 @@ const I18N = {
     submit: "この内容で受付する", sending: "送信中…", next: "仕上がりを確認する",
     confirmTitle: "仕上がりイメージ", previewNote: "写真の部分に、似顔絵が入ります。", confirmQ: "この内容でよろしいですか？", fix: "修正する",
     omakaseNote: "野菜はおまかせ（どの星人になるかはお楽しみ）", noTel: "なし（DM で連絡）",
-    igNote: "任意（電話番号かどちらかを入れてね）", telNoteBooth: "任意（Instagram ID かどちらかを入れてね）", nextVisitor: "受付完了（次の方へ）",
+    photoHintBooth: "タップして<br>顔写真を撮る", igNote: "任意（電話番号かどちらかを入れてね）", telNoteBooth: "任意（Instagram ID かどちらかを入れてね）", nextVisitor: "受付完了（次の方へ）",
     errContact: "完成のお知らせのため、電話番号か Instagram ID のどちらかを入れてください。",
     errIg: "Instagram ID を確認してください（英数字・ピリオド・アンダーバーだけです）。",
     boothLead: "好きな野菜を選んで、顔写真をとるだけ。<br>完成したら Instagram の DM か電話でお知らせします。",
@@ -708,6 +708,9 @@ $("dmBtn").onclick = () => {
 };
 // booth iPads: contact field instead of screenshot + DM, and a reset for the next visitor
 if (BOOTH){
+  // camera only: the booth iPad's photo library stays private
+  $("photo").setAttribute("capture", "user");
+  $("photoHint").innerHTML = T("photoHintBooth");
   $("igField").hidden = false;
   document.querySelector('[data-i18n="telNote"]').textContent = T("telNoteBooth");
   document.querySelector('[data-i18n="igNote"]').textContent = T("igNote");
