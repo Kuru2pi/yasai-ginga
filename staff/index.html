@@ -64,15 +64,13 @@ button{font:inherit;color:inherit;cursor:pointer}
 .keybox form{background:#fff;border-radius:18px;padding:22px;width:min(90vw,360px);display:flex;flex-direction:column;gap:12px}
 .keybox input{font:inherit;font-size:17px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 
-/* print: front on the first L-size sheet, back on the second, both at the card's real size */
+/* print: one 2L sheet (127×178 mm) with front and back stacked; folded in the middle, printed side out */
 #print{display:none}
-@page{size:89mm 127mm;margin:0}
+@page{size:127mm 178mm;margin:0}
 @media print{
   body>*:not(#print){display:none!important}
-  #print{display:block}
-  .page{width:89mm;height:127mm;display:flex;align-items:center;justify-content:center;overflow:hidden;break-after:page;page-break-after:always}
-  .page:last-child{break-after:auto;page-break-after:auto}
-  .page img{width:61.93mm;height:86.36mm}
+  #print{display:flex;width:127mm;height:178mm;align-items:center;justify-content:center;overflow:hidden}
+  #pSheet{width:calc(127mm * var(--k,1));height:calc(178mm * var(--k,1))}
 }
 </style>
 </head>
@@ -109,7 +107,8 @@ button{font:inherit;color:inherit;cursor:pointer}
         <div class="zoom"><span>大きさ</span><input type="range" id="zoom" min="1" max="3" step="0.01" value="1"></div>
         <button class="btn" id="fit">位置をリセット</button>
         <p class="hint">絵は指でドラッグして動かし、2本指で拡大・縮小できます。Procreate からドラッグして入れることもできます。</p>
-        <div class="backcol"><img id="backImg" alt="">裏（2枚目に印刷）</div>
+        <div class="backcol"><img id="backImg" alt="">裏（同じ紙の下半分に印刷）</div>
+        <div class="zoom"><span>倍率補正</span><input type="number" id="scale" min="90" max="110" step="0.1" value="100" style="width:5.5em;font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px">%</div>
         <button class="btn primary" id="printBtn" disabled>印刷</button>
       </div>
     </div>
@@ -124,7 +123,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     <button class="btn primary" type="submit">OK</button>
   </form>
 </div>
-<div id="print"><div class="page"><img id="pFront" alt=""></div><div class="page"><img id="pBack" alt=""></div></div>
+<div id="print"><img id="pSheet" alt=""></div>
 
 <script type="module">
 /* ---------- settings ---------- */
@@ -133,6 +132,9 @@ const ENDPOINT = "https://script.google.com/macros/s/AKfycbz8CCTtf5OtnjJeY3oeSDj
 const WIN = {x: 118, y: 331, w: 988, h: 638};          // transparent window the portrait shows through
 const NAME = {x: 345, base: 230, maxW: 590, size: 60}; // right after "NAME :"
 const NAME_FONT = '"DotGothic16"';
+// 2L sheet, portrait: two trading cards (63×88 mm) lying sideways, front on top, back below, folded on the centre line
+const SHEET = {w: 127, h: 178, dpi: 400}, CARD = {w: 63, h: 88}, GAP = 10, BLEED = 2;
+const CX = (SHEET.w - CARD.h) / 2, TOP_Y = (SHEET.h - 2 * CARD.w - GAP) / 2, FOLD_Y = SHEET.h / 2;
 
 const $ = id => document.getElementById(id);
 const CHARS = await (await fetch("../characters.json")).json();
@@ -222,7 +224,7 @@ $("nick").oninput = () => draw();
 
 function coverScale(){ return Math.max((WIN.w + 8) / art.width, (WIN.h + 8) / art.height); }   // edges tuck under the frame
 function draw(){
-  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.clearRect(0, 0, cv.width, cv.height);   // corners stay transparent so the printed bleed shows through
   if (art){
     const k = coverScale() * view.s, w = art.width * k, h = art.height * k;
     ctx.save();
@@ -292,10 +294,52 @@ const up = e => { pts.delete(e.pointerId); last = pts.size ? gesture() : null; }
 cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
 
 /* ---------- print ---------- */
+// colour of the card's outer frame, used to run the frame 2 mm past the cut line
+function edgeColor(im){
+  const c = document.createElement("canvas"); c.width = im.width; c.height = im.height;
+  const x = c.getContext("2d"); x.drawImage(im, 0, 0);
+  const [r, g, b] = x.getImageData(Math.round(im.width * 0.004), Math.round(im.height / 2), 1, 1).data;
+  return `rgb(${r},${g},${b})`;
+}
+async function buildSheet(){
+  const back = backs[veg.slug] ||= await img(`back/${veg.slug}.png`);
+  const mm = SHEET.dpi / 25.4, c = document.createElement("canvas");
+  c.width = Math.round(SHEET.w * mm); c.height = Math.round(SHEET.h * mm);
+  const x = c.getContext("2d");
+  x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
+  // both cards lie with their top towards the left edge, so the back reads upright after folding
+  for (const [im, edge, y0] of [[cv, edgeColor(fronts[veg.slug]), TOP_Y], [back, edgeColor(back), TOP_Y + CARD.w + GAP]]){
+    x.save();
+    x.translate((CX + CARD.h / 2) * mm, (y0 + CARD.w / 2) * mm);
+    x.rotate(-Math.PI / 2);
+    x.fillStyle = edge;
+    x.fillRect(-(CARD.w / 2 + BLEED) * mm, -(CARD.h / 2 + BLEED) * mm, (CARD.w + 2 * BLEED) * mm, (CARD.h + 2 * BLEED) * mm);
+    const h = CARD.h * mm, w = h * im.width / im.height;   // fit the height; the width differs by under 0.1 mm
+    x.beginPath(); x.rect(-CARD.w / 2 * mm, -h / 2, CARD.w * mm, h); x.clip();
+    x.drawImage(im, -w / 2, -h / 2, w, h);
+    x.restore();
+  }
+  // fold line ticks and cut ticks, all in the margins that get cut away
+  x.strokeStyle = "#999"; x.lineWidth = 0.15 * mm;
+  const tick = (x1, y1, x2, y2) => { x.beginPath(); x.moveTo(x1 * mm, y1 * mm); x.lineTo(x2 * mm, y2 * mm); x.stroke(); };
+  tick(2, FOLD_Y, CX - BLEED - 2, FOLD_Y); tick(CX + CARD.h + BLEED + 2, FOLD_Y, SHEET.w - 2, FOLD_Y);
+  for (const cx of [CX, CX + CARD.h]){ tick(cx, 4, cx, TOP_Y - BLEED - 1); tick(cx, SHEET.h - 4, cx, SHEET.h - TOP_Y + BLEED + 1); }
+  for (const cy of [TOP_Y, TOP_Y + CARD.w, TOP_Y + CARD.w + GAP, TOP_Y + 2 * CARD.w + GAP]){ tick(2, cy, CX - BLEED - 1, cy); tick(CX + CARD.h + BLEED + 1, cy, SHEET.w - 2, cy); }
+  x.fillStyle = "#999"; x.font = `${2.6 * mm}px -apple-system,sans-serif`; x.textAlign = "center";
+  x.fillText("中央の線で山折り（印刷面を外に）", SHEET.w / 2 * mm, (TOP_Y - BLEED - 4) * mm);
+  return new Promise(r => c.toBlob(r, "image/jpeg", 0.92));
+}
+let sheetUrl = "";
+$("scale").value = localStorage.getItem("yasai-print-scale") || 100;
+$("scale").onchange = e => localStorage.setItem("yasai-print-scale", e.target.value);
 $("printBtn").onclick = async () => {
-  $("pFront").src = cv.toDataURL("image/png");
-  $("pBack").src = `back/${veg.slug}.png`;
-  await Promise.all([$("pFront"), $("pBack")].map(i => i.decode().catch(() => {})));
+  $("printBtn").disabled = true;
+  URL.revokeObjectURL(sheetUrl);
+  sheetUrl = URL.createObjectURL(await buildSheet());
+  $("pSheet").src = sheetUrl;
+  $("pSheet").style.setProperty("--k", (+$("scale").value || 100) / 100);
+  await $("pSheet").decode().catch(() => {});
+  $("printBtn").disabled = false;
   window.print();
   if (current) toast(`No.${String(current.number).padStart(3, "0")} を印刷しました。`, true);
 };
