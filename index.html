@@ -188,8 +188,8 @@ textarea{resize:none;min-height:72px}
   <section class="panel intro" id="introPanel" hidden aria-labelledby="introTitle">
     <div class="t-eyebrow">ヤサイギンガ 星間航旅券</div>
     <h2 id="introTitle">あなたの似顔絵を、<br>ヤサイギンガのカードに。</h2>
-    <p class="lead">好きな野菜を選んで、顔写真を送るだけ。<br>完成したら Instagram の DM でお知らせします。</p>
-    <ol class="intro-steps">
+    <p class="lead" id="introLead">好きな野菜を選んで、顔写真を送るだけ。<br>完成したら Instagram の DM でお知らせします。</p>
+    <ol class="intro-steps" id="introSteps">
       <li><b>1</b><div><strong>野菜をえらぶ</strong><span>左右にスワイプして、好きな野菜星人を選びます。</span></div></li>
       <li><b>2</b><div><strong>顔写真とニックネームを送る</strong><span>写真はその場で撮影できます。</span></div></li>
       <li><b>3</b><div><strong>受付票をスクショして DM</strong><span>Instagram の @808yaoya_shop に送ってください。</span></div></li>
@@ -216,6 +216,9 @@ textarea{resize:none;min-height:72px}
       <label class="field"><span><span data-i18n="tel">電話番号</span><em data-i18n="telNote">任意</em></span>
         <input type="tel" id="tel" maxlength="15" autocomplete="tel" placeholder="090-1234-5678">
       </label>
+      <label class="field" id="igField" hidden><span><span data-i18n="ig">Instagram ID</span><em data-i18n="igNote">任意</em></span>
+        <input type="text" id="ig" maxlength="31" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="@808yaoya_shop">
+      </label>
       <label class="check"><input type="checkbox" id="agree"><span data-i18n="agree">顔写真と電話番号は、似顔絵の制作と完成のお知らせだけに使い、芸術祭の終了後に削除します。</span></label>
       <label class="check"><input type="checkbox" id="pickup"><span data-i18n="pickup">閉会時間までに受け取りに来られなかった場合、似顔絵はお渡しできません。</span></label>
       <p class="err" id="formErr" role="alert"></p>
@@ -234,6 +237,7 @@ textarea{resize:none;min-height:72px}
       <dt data-i18n="tName">なまえ</dt><dd id="sumName"></dd>
       <dt data-i18n="tVeg">野菜</dt><dd id="sumVeg"></dd>
       <dt data-i18n="tel">電話番号</dt><dd id="sumTel"></dd>
+      <dt id="sumIgLabel" hidden>Instagram</dt><dd id="sumIg" hidden></dd>
     </dl>
     <p class="confirm-q" data-i18n="confirmQ">この内容でよろしいですか？</p>
     <p class="err" id="confirmErr" role="alert"></p>
@@ -247,7 +251,7 @@ textarea{resize:none;min-height:72px}
     </div>
     <p class="show-staff" data-i18n="showStaff">この画面を店員に見せてください</p>
     <div class="tickets" id="tickets"></div>
-    <ol class="steps">
+    <ol class="steps" id="dmSteps">
       <li><b>1</b><span data-i18n="step1">この画面をスクショ</span></li>
       <li><b>2</b><span data-i18n="step2">下のボタンから DM で送ってね</span></li>
     </ol>
@@ -255,6 +259,7 @@ textarea{resize:none;min-height:72px}
       <button class="btn glass" id="dmBtn" data-i18n="dm">Instagram で DM を送る</button>
       <p class="note" id="dmNote" data-i18n-html="dmNote"></p>
       <button class="btn glass ghost" id="addMore" data-i18n="addMore">＋ 似顔絵を追加する</button>
+      <button class="btn glass" id="nextVisitor" hidden data-i18n="nextVisitor">受付完了（次の方へ）</button>
     </div>
   </section>
 </div>
@@ -271,6 +276,7 @@ const CONFIG = {
   instagram: "808yaoya_shop",   // booth account the DM button opens, without @
   allowDelete: true,   // small (−) button on each ticket for clearing test entries; set false for the festival
   sample: true,        // "SAMPLE" tag above the card
+  booth: false,        // shared iPads at the booth (also on with ?booth in the URL): asks for a contact, keeps no ticket history
 };
 
 const CHARS = window.CHARS || await (await fetch("characters.json")).json();
@@ -291,6 +297,12 @@ const I18N = {
     submit: "この内容で受付する", sending: "送信中…", next: "仕上がりを確認する",
     confirmTitle: "仕上がりイメージ", previewNote: "写真の部分に、似顔絵が入ります。", confirmQ: "この内容でよろしいですか？", fix: "修正する",
     omakaseNote: "野菜はおまかせ（どの星人になるかはお楽しみ）", noTel: "なし（DM で連絡）",
+    igNote: "任意（電話番号かどちらかを入れてね）", telNoteBooth: "任意（Instagram ID かどちらかを入れてね）", nextVisitor: "受付完了（次の方へ）",
+    errContact: "完成のお知らせのため、電話番号か Instagram ID のどちらかを入れてください。",
+    errIg: "Instagram ID を確認してください（英数字・ピリオド・アンダーバーだけです）。",
+    boothLead: "好きな野菜を選んで、顔写真をとるだけ。<br>完成したら Instagram の DM か電話でお知らせします。",
+    boothStep3: "<b>3</b><div><strong>受付票を店員に見せる</strong><span>番号を控えておいてね。</span></div>",
+    boothStep4: "<b>4</b><div><strong>完成したら受け取りへ</strong><span>DM か電話でお知らせします。閉会時間までに受け取ってね。</span></div>",
     ticketTitle: "受付票", showStaff: "この画面を店員に見せてください", addMore: "＋ 似顔絵を追加する", tEyebrow: "ヤサイギンガ 星間航旅券", tTitle: "似顔絵 受付票", tName: "なまえ", tVeg: "野菜",
     step1: "この画面をスクショ", step2: "下のボタンから DM で送ってね", dm: "Instagram で DM を送る",
     dmNote: "ボタンを押すと受付内容もコピーされます。<br>完成したら DM でお知らせします。番号は控えておいてね。",
@@ -304,6 +316,7 @@ const I18N = {
   },
 };
 const T = k => I18N.ja[k];
+const BOOTH = CONFIG.booth || new URLSearchParams(location.search).has("booth");
 function applyLang(){
   document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = T(el.dataset.i18n); });
   document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = T(el.dataset.i18nHtml); });
@@ -518,8 +531,8 @@ function loadTickets(){
   } catch {}
   return ts;
 }
-const saveTickets = ts => { try { localStorage.setItem(TICKETS_KEY, JSON.stringify(ts)); } catch {} };
-let tickets = loadTickets();
+const saveTickets = ts => { if (BOOTH) return; try { localStorage.setItem(TICKETS_KEY, JSON.stringify(ts)); } catch {} };
+let tickets = BOOTH ? [] : loadTickets();
 $("openTicket").hidden = !tickets.length;
 
 // "おまかせ" leaves the vegetable to the artist
@@ -567,21 +580,26 @@ $("entry").onsubmit = async e => {
   if (!nick) return err("errNick");
   if (!NICK_OK.test(nick)) return err("errNickChars");
   if (tel && (digits.length < 10 || digits.length > 13)) return err("errTel");
+  const ig = BOOTH ? $("ig").value.normalize("NFKC").trim().replace(/^@/, "") : "";
+  if (ig && !/^[A-Za-z0-9._]{1,30}$/.test(ig)) return err("errIg");
+  if (BOOTH && !tel && !ig) return err("errContact");
   if (!$("agree").checked) return err("errAgree");
   if (!$("pickup").checked) return err("errPickup");
   $("formErr").textContent = "";
-  openConfirm(nick, tel);
+  openConfirm(nick, tel, ig);
 };
 
 /* ---------- "this is roughly how it will look": the chosen card with the visitor's photo in the window ---------- */
 const WIN = {x: 118, y: 331, w: 988, h: 638}, NAME = {x: 345, base: 230, maxW: 590, size: 60};   // on staff/front/<slug>.png
 const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
 let pendingEntry = null;
-async function openConfirm(nick, tel){
-  pendingEntry = {nick, tel};
+async function openConfirm(nick, tel, ig){
+  pendingEntry = {nick, tel, ig};
+  $("sumIg").textContent = ig ? "@" + ig : "なし";
+  $("sumIgLabel").hidden = $("sumIg").hidden = !BOOTH;
   $("sumName").textContent = nick;
   $("sumVeg").textContent = T("alien")(chosen.label);
-  $("sumTel").textContent = tel || T("noTel");
+  $("sumTel").textContent = tel || (BOOTH ? "なし" : T("noTel"));
   $("confirmErr").textContent = "";
   $("confirmPanel").hidden = false; $("confirmPanel").scrollTop = 0;
   const cv = $("previewCv"), x = cv.getContext("2d");
@@ -613,11 +631,11 @@ async function openConfirm(nick, tel){
 $("closeConfirm").onclick = $("fixBtn").onclick = () => { $("confirmPanel").hidden = true; };
 $("confirmBtn").onclick = () => pendingEntry && send(pendingEntry);
 
-async function send({nick, tel}){
+async function send({nick, tel, ig}){
   const err = k => { $("confirmErr").textContent = T(k); };
   const c = chosen;
   // the sheet is for the booth staff, so it always gets the Japanese name; "なし" = DM only
-  const entry = {vegetable: c.label, nickname: nick, instagram: "", phone: tel || "なし"};
+  const entry = {vegetable: c.label, nickname: nick, instagram: ig ? "@" + ig : "", phone: tel || "なし"};
   const btn = $("confirmBtn"); btn.disabled = true; btn.textContent = T("sending");
   try {
     let number, time, demo = false;
@@ -632,8 +650,9 @@ async function send({nick, tel}){
       time = new Date().toLocaleString("ja-JP", {month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"});
     }
     tickets.unshift({nickname: nick, vegJa: c.label, number, time, demo, color: c.color, photo: photoData});
+    if (BOOTH) tickets.length = 1;   // a shared iPad only ever shows the current visitor's ticket
     saveTickets(tickets);
-    $("openTicket").hidden = false;
+    $("openTicket").hidden = BOOTH;
     $("entry").reset();
     photoData = ""; $("photoPreview").hidden = true; $("photoHint").hidden = false; $("photoBox").classList.remove("has");
     formPanel.hidden = true; $("confirmPanel").hidden = true; pendingEntry = null;
@@ -659,7 +678,7 @@ function ticketEl(t){
   el.querySelector("img").src = t.photo || "";
   el.querySelector(".n").textContent = t.nickname;
   el.querySelector(".v").textContent = T("alien")(t.vegJa);
-  if (CONFIG.allowDelete){
+  if (CONFIG.allowDelete && !BOOTH){
     el.classList.add("deletable");
     const del = document.createElement("button");
     del.className = "t-del glass"; del.textContent = "−"; del.setAttribute("aria-label", "この受付票を削除");
@@ -686,6 +705,22 @@ $("dmBtn").onclick = () => {
   const go = () => { location.href = `https://ig.me/m/${CONFIG.instagram}`; };
   // copy inside the tap, then open the booth's DM thread
   (navigator.clipboard?.writeText(T("dmText")(tickets)) ?? Promise.reject()).catch(() => {}).finally(go);
+};
+// booth iPads: contact field instead of screenshot + DM, and a reset for the next visitor
+if (BOOTH){
+  $("igField").hidden = false;
+  document.querySelector('[data-i18n="telNote"]').textContent = T("telNoteBooth");
+  document.querySelector('[data-i18n="igNote"]').textContent = T("igNote");
+  $("introLead").innerHTML = T("boothLead");
+  const li = $("introSteps").children;
+  if (li[2]) li[2].innerHTML = T("boothStep3");
+  if (li[3]) li[3].innerHTML = T("boothStep4");
+  for (const id of ["dmSteps", "dmBtn", "dmNote", "addMore"]) $(id).hidden = true;
+  $("nextVisitor").hidden = false;
+}
+$("nextVisitor").onclick = () => {
+  tickets = []; ticketPanel.hidden = true; $("openTicket").hidden = true;
+  $("introPanel").hidden = false; $("introPanel").scrollTop = 0;
 };
 // first screen: the tickets once signed up, otherwise how it works
 if (tickets.length) showTickets();

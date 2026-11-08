@@ -133,6 +133,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 <script type="module">
 /* ---------- settings ---------- */
+const SERVER_PRINT = false;   // booth build: the Mac prints the sheet instead of this iPad's print dialog
 const ENDPOINT = "https://script.google.com/macros/s/AKfycbz8CCTtf5OtnjJeY3oeSDjKSe39hJZAbXC58oG2UL_0sLvGY9Tdiv4_-eq38eJWQqUnbA/exec";
 // positions on the cropped front image (1219×1700 px at 500 dpi)
 const WIN = {x: 118, y: 331, w: 988, h: 638};          // transparent window the portrait shows through
@@ -377,6 +378,18 @@ $("scale").value = localStorage.getItem("yasai-print-scale") || 100;
 $("scale").onchange = e => localStorage.setItem("yasai-print-scale", e.target.value);
 $("printBtn").onclick = async () => {
   $("printBtn").disabled = true;
+  if (SERVER_PRINT){
+    const number = current ? current.number : 0;
+    try {
+      const body = await buildSheet();
+      const r = await (await fetch(`${ENDPOINT}?action=print&number=${number}&scale=${(+$("scale").value || 100) / 100}&key=${encodeURIComponent(key)}`, {method: "POST", body})).json();
+      if (!r.ok) throw new Error(r.error);
+      toast(current ? `No.${String(number).padStart(3, "0")} を Mac から印刷しています。` : "Mac から印刷しています。", !!current);
+    } catch (e) {
+      toast(`印刷できませんでした：${e.message || "Mac につながりません"}`);
+    } finally { $("printBtn").disabled = false; }
+    return;
+  }
   URL.revokeObjectURL(sheetUrl);
   sheetUrl = URL.createObjectURL(await buildSheet());
   $("pSheet").src = sheetUrl;
