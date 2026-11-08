@@ -57,6 +57,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 .hint{color:var(--muted);font-size:12px;line-height:1.6;margin:0}
 .zoom{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
 .zoom input{flex:1}
+.bgs{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.bgs button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);padding:0}
+.bgs button.on{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--fg)}
+.bgs input{width:32px;height:30px;border:0;padding:0;background:none}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));translate:-50% 0;background:var(--fg);color:#fff;border-radius:14px;padding:12px 14px 12px 18px;display:flex;gap:12px;align-items:center;box-shadow:0 6px 24px rgba(0,0,0,.25)}
 .toast button{background:#fff;color:var(--fg);border:0;border-radius:10px;padding:8px 12px;font-weight:700}
 .toast button.x{background:none;color:#fff;font-weight:400}
@@ -106,6 +110,8 @@ button{font:inherit;color:inherit;cursor:pointer}
         <input type="file" id="file" accept="image/*" hidden>
         <div class="zoom"><span>大きさ</span><input type="range" id="zoom" min="1" max="3" step="0.01" value="1"></div>
         <button class="btn" id="fit">位置をリセット</button>
+        <div class="zoom"><span>背景色</span></div>
+        <div class="bgs" id="bgs"><input type="color" id="bgPick" aria-label="好きな色"></div>
         <p class="hint">絵は指でドラッグして動かし、2本指で拡大・縮小できます。Procreate からドラッグして入れることもできます。</p>
         <div class="backcol"><img id="backImg" alt="">裏（同じ紙の下半分に印刷）</div>
         <div class="zoom"><span>倍率補正</span><input type="number" id="scale" min="90" max="110" step="0.1" value="100" style="width:5.5em;font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px">%</div>
@@ -142,6 +148,9 @@ const cv = $("cv"), ctx = cv.getContext("2d");
 let key = localStorage.getItem("yasai-staff-key") || "";
 let entries = [], filter = "todo", current = null;   // current = entry from the sheet, or null for 手入力
 let veg = null, art = null, view = {s: 1, dx: 0, dy: 0};
+// colour behind the portrait (shows through transparent parts of the drawing)
+const BG_COLORS = ["#ffffff", "#cfe8f7", "#fff27a", "#ffd6e0", "#d4f2dc", "#e6dcf5", "#fff1d6", "#222222"];
+let bg = localStorage.getItem("yasai-bg") || "#ffffff";
 const fronts = {}, backs = {};
 const img = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
 
@@ -229,6 +238,7 @@ function draw(){
     const k = coverScale() * view.s, w = art.width * k, h = art.height * k;
     ctx.save();
     ctx.beginPath(); ctx.rect(WIN.x - 4, WIN.y - 4, WIN.w + 8, WIN.h + 8); ctx.clip();   // runs a little under the frame
+    ctx.fillStyle = bg; ctx.fillRect(WIN.x - 4, WIN.y - 4, WIN.w + 8, WIN.h + 8);
     ctx.drawImage(art, WIN.x + (WIN.w - w) / 2 + view.dx, WIN.y + (WIN.h - h) / 2 + view.dy, w, h);
     ctx.restore();
   } else {
@@ -267,6 +277,18 @@ const front = $("front");
 front.addEventListener("dragover", e => { e.preventDefault(); $("drop").hidden = false; });
 front.addEventListener("dragleave", () => { $("drop").hidden = true; });
 front.addEventListener("drop", e => { e.preventDefault(); $("drop").hidden = true; setArt(e.dataTransfer.files[0]); });
+function setBg(c){
+  bg = c; localStorage.setItem("yasai-bg", c); $("bgPick").value = c;
+  document.querySelectorAll("#bgs button").forEach(b => b.classList.toggle("on", b.dataset.c === c));
+  draw();
+}
+$("bgs").prepend(...BG_COLORS.map(c => {
+  const b = document.createElement("button");
+  b.dataset.c = c; b.style.background = c; b.setAttribute("aria-label", c);
+  b.onclick = () => setBg(c);
+  return b;
+}));
+$("bgPick").oninput = e => setBg(e.target.value);
 $("zoom").oninput = e => { view.s = +e.target.value; draw(); };
 $("fit").onclick = () => { view = {s: 1, dx: 0, dy: 0}; $("zoom").value = 1; draw(); };
 
@@ -361,6 +383,7 @@ $("toastDo").onclick = async () => {
 };
 
 await document.fonts.load(`60px ${NAME_FONT}`, "あアA");
+setBg(bg);
 openEntry(null);
 loadList();
 </script>
