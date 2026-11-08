@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>似顔絵 印刷</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+:root{--fg:#111;--muted:#888;--line:#e4e4e4;--bg:#fff;--soft:#f5f5f5;color-scheme:light}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font:15px -apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer}
+.app{display:grid;grid-template-columns:minmax(260px,320px) 1fr;height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+@media (max-width:820px) and (orientation:portrait){.app{grid-template-columns:1fr;grid-template-rows:38dvh 1fr}}
+
+/* list of entries */
+.side{display:flex;flex-direction:column;border-right:1px solid var(--line);min-height:0}
+.side header{display:flex;align-items:center;gap:8px;padding:16px 16px 10px}
+.side h1{font-size:18px;margin:0;flex:1}
+.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font-size:13px}
+.pill.on{background:var(--fg);color:#fff;border-color:var(--fg)}
+.filters{display:flex;gap:6px;padding:0 16px 10px}
+.list{flex:1;overflow:auto;padding:0 10px 16px;-webkit-overflow-scrolling:touch}
+.entry{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;padding:10px 8px;border-radius:12px}
+.entry.sel{background:var(--soft)}
+.entry b{font-family:"DotGothic16",monospace;font-size:22px;font-weight:400;min-width:2.6em}
+.entry .who{min-width:0}
+.entry .who div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry .who small{color:var(--muted);font-size:12px}
+.chip{font-size:11px;border-radius:999px;padding:3px 8px;background:var(--soft);color:#555;white-space:nowrap}
+.chip.完成,.chip.受け渡し済{background:#e7f6ea;color:#1b7a35}
+.msg{color:var(--muted);font-size:13px;padding:12px 16px;line-height:1.6}
+
+/* editor */
+.main{display:flex;flex-direction:column;min-height:0;overflow:auto}
+.bar{display:flex;flex-wrap:wrap;gap:6px;padding:14px 18px 8px}
+.veg{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 11px;font-size:13px}
+.veg i{width:10px;height:10px;border-radius:50%}
+.veg.on{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg);font-weight:700}
+.fields{display:flex;gap:10px;align-items:center;padding:4px 18px 10px;flex-wrap:wrap}
+.fields label{font-size:13px;color:var(--muted)}
+.fields input[type=text]{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:14em}
+.stage{flex:1;display:flex;gap:18px;align-items:flex-start;justify-content:center;padding:6px 18px 18px;min-height:0}
+.front{position:relative;touch-action:none}
+.front canvas{display:block;height:min(62dvh,560px);width:auto;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.12)}
+.drop{position:absolute;inset:0;border:3px dashed var(--fg);border-radius:10px;background:rgba(255,255,255,.6);display:grid;place-items:center;font-weight:700}
+.backcol{display:flex;flex-direction:column;gap:8px;align-items:center;color:var(--muted);font-size:12px}
+.backcol img{height:min(26dvh,230px);border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.tools{display:flex;flex-direction:column;gap:10px;width:220px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px 14px;font-weight:600}
+.btn.primary{background:var(--fg);color:#fff;border-color:var(--fg);font-size:18px;padding:18px}
+.btn:disabled{opacity:.35}
+.hint{color:var(--muted);font-size:12px;line-height:1.6;margin:0}
+.zoom{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.zoom input{flex:1}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));translate:-50% 0;background:var(--fg);color:#fff;border-radius:14px;padding:12px 14px 12px 18px;display:flex;gap:12px;align-items:center;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.toast button{background:#fff;color:var(--fg);border:0;border-radius:10px;padding:8px 12px;font-weight:700}
+.toast button.x{background:none;color:#fff;font-weight:400}
+.keybox{position:fixed;inset:0;background:rgba(0,0,0,.35);display:grid;place-items:center}
+.keybox form{background:#fff;border-radius:18px;padding:22px;width:min(90vw,360px);display:flex;flex-direction:column;gap:12px}
+.keybox input{font:inherit;font-size:17px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+
+/* print: front on the first L-size sheet, back on the second, both at the card's real size */
+#print{display:none}
+@page{size:89mm 127mm;margin:0}
+@media print{
+  body>*:not(#print){display:none!important}
+  #print{display:block}
+  .page{width:89mm;height:127mm;display:flex;align-items:center;justify-content:center;overflow:hidden;break-after:page;page-break-after:always}
+  .page:last-child{break-after:auto;page-break-after:auto}
+  .page img{width:61.93mm;height:86.36mm}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <header>
+      <h1>似顔絵 印刷</h1>
+      <button class="pill" id="reload">更新</button>
+    </header>
+    <div class="filters">
+      <button class="pill on" data-f="todo">未完成</button>
+      <button class="pill" data-f="all">すべて</button>
+      <button class="pill" id="manual">＋ 手入力</button>
+    </div>
+    <div class="msg" id="listMsg">読み込み中…</div>
+    <div class="list" id="list"></div>
+  </aside>
+
+  <main class="main">
+    <div class="bar" id="vegs"></div>
+    <div class="fields">
+      <label for="nick">ニックネーム</label><input type="text" id="nick" autocomplete="off">
+      <span class="chip" id="who" hidden></span>
+    </div>
+    <div class="stage">
+      <div class="front" id="front">
+        <canvas id="cv" width="1219" height="1700"></canvas>
+        <div class="drop" id="drop" hidden>ここにドロップ</div>
+      </div>
+      <div class="tools">
+        <button class="btn" id="pick">似顔絵を選ぶ</button>
+        <input type="file" id="file" accept="image/*" hidden>
+        <div class="zoom"><span>大きさ</span><input type="range" id="zoom" min="1" max="3" step="0.01" value="1"></div>
+        <button class="btn" id="fit">位置をリセット</button>
+        <p class="hint">絵は指でドラッグして動かし、2本指で拡大・縮小できます。Procreate からドラッグして入れることもできます。</p>
+        <div class="backcol"><img id="backImg" alt="">裏（2枚目に印刷）</div>
+        <button class="btn primary" id="printBtn" disabled>印刷</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" hidden><span id="toastText"></span><button id="toastDo" hidden>完成にする</button><button class="x" id="toastX">とじる</button></div>
+<div class="keybox" id="keybox" hidden>
+  <form id="keyForm">
+    <b>合言葉を入れてください</b>
+    <input type="password" id="keyIn" autocomplete="off" autocapitalize="off">
+    <button class="btn primary" type="submit">OK</button>
+  </form>
+</div>
+<div id="print"><div class="page"><img id="pFront" alt=""></div><div class="page"><img id="pBack" alt=""></div></div>
+
+<script type="module">
+/* ---------- settings ---------- */
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbz8CCTtf5OtnjJeY3oeSDjKSe39hJZAbXC58oG2UL_0sLvGY9Tdiv4_-eq38eJWQqUnbA/exec";
+// positions on the cropped front image (1219×1700 px at 500 dpi)
+const WIN = {x: 118, y: 331, w: 988, h: 638};          // transparent window the portrait shows through
+const NAME = {x: 345, base: 230, maxW: 590, size: 60}; // right after "NAME :"
+const NAME_FONT = '"DotGothic16"';
+
+const $ = id => document.getElementById(id);
+const CHARS = await (await fetch("../characters.json")).json();
+const cv = $("cv"), ctx = cv.getContext("2d");
+let key = localStorage.getItem("yasai-staff-key") || "";
+let entries = [], filter = "todo", current = null;   // current = entry from the sheet, or null for 手入力
+let veg = null, art = null, view = {s: 1, dx: 0, dy: 0};
+const fronts = {}, backs = {};
+const img = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+
+/* ---------- entries from the sheet ---------- */
+async function loadList(){
+  if (!key) return askKey();
+  $("listMsg").hidden = false; $("listMsg").textContent = "読み込み中…";
+  try {
+    const r = await (await fetch(`${ENDPOINT}?action=list&key=${encodeURIComponent(key)}`)).json();
+    if (!r.ok && r.error === "bad key"){ key = ""; localStorage.removeItem("yasai-staff-key"); return askKey(); }
+    if (!r.list) throw new Error("old");
+    entries = r.list.sort((a, b) => a.number - b.number);
+    renderList();
+  } catch (e) {
+    $("listMsg").textContent = e.message === "old"
+      ? "受付スクリプトが古いままです。Code.gs を貼り直して、新しいバージョンでデプロイしてください。"
+      : "読み込めませんでした。電波を確認して「更新」を押してください。";
+  }
+}
+function renderList(){
+  const shown = entries.filter(e => filter === "all" || !/完成|受け渡し済/.test(e.status));
+  $("listMsg").hidden = !!shown.length;
+  $("listMsg").textContent = entries.length ? "未完成の受付はありません。" : "まだ受付がありません。";
+  $("list").replaceChildren(...shown.map(e => {
+    const b = document.createElement("button");
+    b.className = "entry" + (current && current.number === e.number ? " sel" : "");
+    b.innerHTML = `<b></b><span class="who"><div></div><small></small></span><span class="chip"></span>`;
+    b.querySelector("b").textContent = String(e.number).padStart(3, "0");
+    b.querySelector(".who div").textContent = e.nickname;
+    b.querySelector("small").textContent = `${e.vegetable}　${e.time}`;
+    const chip = b.querySelector(".chip"); chip.textContent = e.status; chip.classList.add(e.status);
+    b.onclick = () => openEntry(e);
+    return b;
+  }));
+}
+function askKey(){ $("keybox").hidden = false; $("keyIn").focus(); }
+$("keyForm").onsubmit = e => {
+  e.preventDefault();
+  key = $("keyIn").value.trim(); if (!key) return;
+  localStorage.setItem("yasai-staff-key", key);
+  $("keybox").hidden = true; loadList();
+};
+$("reload").onclick = loadList;
+document.querySelectorAll("[data-f]").forEach(b => b.onclick = () => {
+  filter = b.dataset.f;
+  document.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b));
+  renderList();
+});
+$("manual").onclick = () => openEntry(null);
+setInterval(() => { if (key && document.visibilityState === "visible") loadList(); }, 60000);
+
+/* ---------- editor ---------- */
+$("vegs").replaceChildren(...CHARS.map(c => {
+  const b = document.createElement("button");
+  b.className = "veg"; b.dataset.slug = c.slug;
+  b.innerHTML = `<i style="background:${c.color}"></i>${c.label}`;
+  b.onclick = () => setVeg(c);
+  return b;
+}));
+function openEntry(e){
+  current = e;
+  $("nick").value = e ? e.nickname : "";
+  $("who").hidden = !e;
+  if (e) $("who").textContent = `No.${String(e.number).padStart(3, "0")}　${e.vegetable}`;
+  art = null; view = {s: 1, dx: 0, dy: 0}; $("zoom").value = 1;
+  const c = e && CHARS.find(c => c.label === e.vegetable);
+  setVeg(c || null);   // おまかせ: staff picks the vegetable
+  renderList();
+}
+async function setVeg(c){
+  veg = c;
+  document.querySelectorAll(".veg").forEach(b => b.classList.toggle("on", !!c && b.dataset.slug === c.slug));
+  if (c){
+    fronts[c.slug] ||= await img(`front/${c.slug}.png`);
+    $("backImg").src = `back/${c.slug}.png`;
+  } else $("backImg").removeAttribute("src");
+  draw();
+}
+$("nick").oninput = () => draw();
+
+function coverScale(){ return Math.max((WIN.w + 8) / art.width, (WIN.h + 8) / art.height); }   // edges tuck under the frame
+function draw(){
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+  if (art){
+    const k = coverScale() * view.s, w = art.width * k, h = art.height * k;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(WIN.x - 4, WIN.y - 4, WIN.w + 8, WIN.h + 8); ctx.clip();   // runs a little under the frame
+    ctx.drawImage(art, WIN.x + (WIN.w - w) / 2 + view.dx, WIN.y + (WIN.h - h) / 2 + view.dy, w, h);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = "#f1f1f1"; ctx.fillRect(WIN.x, WIN.y, WIN.w, WIN.h);
+    ctx.fillStyle = "#aaa"; ctx.font = `48px -apple-system,sans-serif`; ctx.textAlign = "center";
+    ctx.fillText("似顔絵を選んでください", WIN.x + WIN.w / 2, WIN.y + WIN.h / 2 + 16); ctx.textAlign = "left";
+  }
+  if (veg){
+    ctx.drawImage(fronts[veg.slug], 0, 0);
+    const name = $("nick").value.trim();
+    if (name){
+      let size = NAME.size;
+      ctx.font = `${size}px ${NAME_FONT}`;
+      const w = ctx.measureText(name).width;
+      if (w > NAME.maxW){ size *= NAME.maxW / w; ctx.font = `${size}px ${NAME_FONT}`; }
+      ctx.fillStyle = veg.ink; ctx.textBaseline = "alphabetic";
+      ctx.fillText(name, NAME.x, NAME.base);
+    }
+  } else {
+    ctx.fillStyle = "#888"; ctx.font = `52px -apple-system,sans-serif`; ctx.textAlign = "center";
+    ctx.fillText("野菜を選んでください", cv.width / 2, 200); ctx.textAlign = "left";
+  }
+  $("printBtn").disabled = !(veg && art);
+}
+
+/* ---------- the portrait: pick, drop, drag, pinch ---------- */
+async function setArt(file){
+  if (!file || !file.type.startsWith("image/")) return;
+  const url = URL.createObjectURL(file);
+  try { art = await img(url); } catch { return toast("画像を読み込めませんでした。"); }
+  view = {s: 1, dx: 0, dy: 0}; $("zoom").value = 1; draw();
+}
+$("pick").onclick = () => $("file").click();
+$("file").onchange = e => { setArt(e.target.files[0]); e.target.value = ""; };
+const front = $("front");
+front.addEventListener("dragover", e => { e.preventDefault(); $("drop").hidden = false; });
+front.addEventListener("dragleave", () => { $("drop").hidden = true; });
+front.addEventListener("drop", e => { e.preventDefault(); $("drop").hidden = true; setArt(e.dataTransfer.files[0]); });
+$("zoom").oninput = e => { view.s = +e.target.value; draw(); };
+$("fit").onclick = () => { view = {s: 1, dx: 0, dy: 0}; $("zoom").value = 1; draw(); };
+
+const pts = new Map(); let last = null;
+const toCard = () => cv.width / cv.getBoundingClientRect().width;
+function gesture(){
+  const p = [...pts.values()];
+  const c = {x: p.reduce((s, q) => s + q.x, 0) / p.length, y: p.reduce((s, q) => s + q.y, 0) / p.length};
+  const d = p.length > 1 ? Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y) : 0;
+  return {c, d, n: p.length};
+}
+cv.addEventListener("pointerdown", e => { if (!art) return; cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, {x: e.clientX, y: e.clientY}); last = gesture(); });
+cv.addEventListener("pointermove", e => {
+  if (!pts.has(e.pointerId)) return;
+  pts.set(e.pointerId, {x: e.clientX, y: e.clientY});
+  const g = gesture(), k = toCard();
+  if (last && g.n === last.n){
+    view.dx += (g.c.x - last.c.x) * k; view.dy += (g.c.y - last.c.y) * k;
+    if (g.n > 1 && last.d) view.s = Math.min(3, Math.max(1, view.s * g.d / last.d));
+    $("zoom").value = view.s; draw();
+  }
+  last = g;
+});
+const up = e => { pts.delete(e.pointerId); last = pts.size ? gesture() : null; };
+cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+
+/* ---------- print ---------- */
+$("printBtn").onclick = async () => {
+  $("pFront").src = cv.toDataURL("image/png");
+  $("pBack").src = `back/${veg.slug}.png`;
+  await Promise.all([$("pFront"), $("pBack")].map(i => i.decode().catch(() => {})));
+  window.print();
+  if (current) toast(`No.${String(current.number).padStart(3, "0")} を印刷しました。`, true);
+};
+let doneFor = null;
+function toast(text, offerDone){
+  $("toastText").textContent = text;
+  doneFor = offerDone ? current : null;
+  $("toastDo").hidden = !offerDone;
+  $("toast").hidden = false;
+}
+$("toastX").onclick = () => { $("toast").hidden = true; };
+$("toastDo").onclick = async () => {
+  const e = doneFor; $("toast").hidden = true; if (!e) return;
+  try {
+    const r = await (await fetch(`${ENDPOINT}?action=done&number=${e.number}&key=${encodeURIComponent(key)}`)).json();
+    if (!r.ok) throw 0;
+    e.status = "完成"; renderList();
+  } catch { toast("完成にできませんでした。スプレッドシートで直接変えてください。"); }
+};
+
+await document.fonts.load(`60px ${NAME_FONT}`, "あアA");
+openEntry(null);
+loadList();
+</script>
+</body>
+</html>
